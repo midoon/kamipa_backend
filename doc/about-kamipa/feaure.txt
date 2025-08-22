@@ -1,0 +1,4 @@
+Fitur:
+
+## AUTH
+- Sistem menampilkan sekilan data siswa sesuai dengan nisn yang diinputkan user ketika proses registrasi

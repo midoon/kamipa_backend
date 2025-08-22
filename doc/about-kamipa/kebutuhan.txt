@@ -1,0 +1,28 @@
+Kebutuhan fungsional
+
+## AUTH
+- user dapat register (email, nisn siswa, password)
+- user dapat login (email, password)
+
+
+## DASHBOARD
+- user dapat melihat dashboard yang berisi : berita, prestasi, pengumaman, dari sekolah
+
+
+## Profil siswa
+- user dapat melihat data siswa (nama, nisn, jenis kelamin, tgl lahir, kelas, foto[kalau ada], )
+
+## Kehadiran
+- user dapat melihat jumlah daftar hadir siswa per semester (total kehadiran, hadir, izin, sakit, alpha)
+
+
+## Pembayaran
+- user dapat melihat status tagihan siswa (yang sudah dibayar dan belum serta nominalnya),
+- user dapat melakukan pembayaran pada tiap tagihan yang ada
+
+## Rapot siswa
+- user dapat melihat nilai rapot dari siswanya
+- user dapat melihat nilai harian/tugas dari siswanya
+
+## Rekomendasi Parenting (LLM)
+- user dapat melihat saran ilmu parenting yang digerate dari api LLM berdasarkan data kehadiran siswa dan nilai siswa

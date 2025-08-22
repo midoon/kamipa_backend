@@ -1,16 +1,16 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "SUPERMIPA - REST API",
-    "description": "This is a REST API for SUPERMIPA, a contact management application.",
+    "title": "KAMIPA - REST API",
+    "description": "This is a REST API for KAMIPA (Keluarga Madrasah Ibtidaiyah Pancasila)",
     "version": "1.0.0"
   },
-  "servers": [{ "url": "http://localhost:3000" }],
+  "servers": [{ "url": "http://localhost:9000" }],
   "paths": {
-    "/api/register": {
+    "/api/auth/register": {
       "post": {
         "tags": ["Auth API"],
-        "description": "Register new user",
+        "description": "Registrasi akun baru",
         "requestBody": {
           "content": {
             "application/json": {
@@ -18,9 +18,9 @@
                 "type": "object",
                 "properties": {
                   "email": { "type": "string", "format": "email" },
-                  "student_nik": {
+                  "student_nisn": {
                     "type": "string",
-                    "description": "Student NIK",
+                    "description": "Student nisn",
                     "example": "1234567890"
                   },
                   "password": {
@@ -29,7 +29,7 @@
                     "minLength": 8
                   }
                 },
-                "required": ["email", "student_nik", "password"]
+                "required": ["email", "student_nisn", "password"]
               }
             }
           }
@@ -59,21 +59,29 @@
         }
       }
     },
-    "/api/users": {
+
+    "/api/auth/login": {
       "post": {
-        "tags": ["User API"],
-        "description": "Register new user",
+        "tags": ["Auth API"],
+        "description": "Melakukan proses autentikasi dan otorisasi",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "id": { "type": "string" },
-                  "password": { "type": "string" },
-                  "name": { "type": "string" }
+                  "student_nisn": {
+                    "type": "string",
+                    "description": "Student nisn",
+                    "example": "1234567890"
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "Password must be at least 8 characters long",
+                    "minLength": 8
+                  }
                 },
-                "required": ["id", "name", "password"]
+                "required": ["email", "student_nisn", "password"]
               }
             }
           }
@@ -86,13 +94,20 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success", "error"],
+                      "default": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "default": "User login successfully"
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
-                        "id": { "type": "string" },
-                        "name": { "type": "string" },
-                        "created_at": { "type": "number" },
-                        "updated_at": { "type": "number" }
+                        "access_token": { "type": "string" },
+                        "refresh_token": { "type": "string" }
                       }
                     }
                   }
@@ -101,18 +116,67 @@
             }
           }
         }
-      },
-      "delete": {
-        "description": "Logout user",
-        "tags": ["User API"],
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "required": true,
-            "schema": { "type": "string" }
+      }
+    },
+
+    "/api/auth/refresh": {
+      "post": {
+        "tags": ["Auth API"],
+        "description": "Memperbarui access token",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "refresh_token": {
+                    "type": "string",
+                    "description": "refresh token yang didapatkan dari proses login"
+                  }
+                },
+                "required": ["email", "student_nik", "password"]
+              }
+            }
           }
-        ],
+        },
+        "responses": {
+          "200": {
+            "description": "Success refresh access token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success", "error"],
+                      "default": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "default": "Refresh access token successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "access_token": { "type": "string" },
+                        "refresh_token": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/api/auth/logout": {
+      "delete": {
+        "security": [{ "JwtAuth": [] }],
+        "tags": ["Auth API"],
+        "description": "Menghapus otorisasi pengguna",
         "responses": {
           "200": {
             "description": "Success logout user",
@@ -120,263 +184,15 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": { "data": { "type": "boolean" } }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/users/_login": {
-      "post": {
-        "description": "Login user",
-        "tags": ["User API"],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "id": { "type": "string" },
-                  "password": { "type": "string" }
-                },
-                "required": ["id", "password"]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success login",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
                   "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": { "token": { "type": "string" } }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/users/_current": {
-      "get": {
-        "tags": ["User API"],
-        "description": "Get current user",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "required": true,
-            "schema": { "type": "string" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success register new user",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": { "type": "string" },
-                        "name": { "type": "string" },
-                        "created_at": { "type": "number" },
-                        "updated_at": { "type": "number" }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "patch": {
-        "tags": ["User API"],
-        "description": "Update current user",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "required": true,
-            "schema": { "type": "string" }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "password": { "type": "string" },
-                  "name": { "type": "string" }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success register new user",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": { "type": "string" },
-                        "name": { "type": "string" },
-                        "created_at": { "type": "number" },
-                        "updated_at": { "type": "number" }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/contacts": {
-      "post": {
-        "tags": ["Contact API"],
-        "description": "Create new contact",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "required": true,
-            "schema": { "type": "string" }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "first_name": { "type": "string" },
-                  "last_name": { "type": "string" },
-                  "email": { "type": "string" },
-                  "phone": { "type": "string" }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success create new contact",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": { "type": "string" },
-                        "first_name": { "type": "string" },
-                        "last_name": { "type": "string" },
-                        "email": { "type": "string" },
-                        "phone": { "type": "string" },
-                        "created_at": { "type": "number" },
-                        "updated_at": { "type": "number" }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "get": {
-        "tags": ["Contact API"],
-        "description": "Get all contacts",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "required": true,
-            "schema": { "type": "string" }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": { "type": "number", "default": 1 }
-          },
-          {
-            "name": "size",
-            "in": "query",
-            "required": false,
-            "schema": { "type": "number", "default": 10 }
-          },
-          {
-            "name": "name",
-            "in": "query",
-            "required": false,
-            "schema": { "type": "string" }
-          },
-          {
-            "name": "phone",
-            "in": "query",
-            "required": false,
-            "schema": { "type": "string" }
-          },
-          {
-            "name": "email",
-            "in": "query",
-            "required": false,
-            "schema": { "type": "string" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success get list of contacts",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": { "type": "string" },
-                          "first_name": { "type": "string" },
-                          "last_name": { "type": "string" },
-                          "email": { "type": "string" },
-                          "phone": { "type": "string" },
-                          "created_at": { "type": "number" },
-                          "updated_at": { "type": "number" }
-                        }
-                      }
+                    "status": {
+                      "type": "string",
+                      "enum": ["success", "error"],
+                      "default": "success"
                     },
-                    "paging": {
-                      "type": "object",
-                      "properties": {
-                        "page": { "type": "number" },
-                        "size": { "type": "number" },
-                        "total_item": { "type": "number" },
-                        "total_page": { "type": "number" }
-                      }
+                    "message": {
+                      "type": "string",
+                      "default": "Logout user successfully"
                     }
                   }
                 }
@@ -386,242 +202,50 @@
         }
       }
     },
-    "/api/contacts/{contactId}": {
+
+    "/api/news": {
       "get": {
-        "tags": ["Contact API"],
-        "description": "Get contact by id",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "required": true,
-            "schema": { "type": "string" }
-          },
-          {
-            "name": "contactId",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string" }
-          }
-        ],
+        "security": [{ "JwtAuth": [] }],
+        "tags": ["Dashboard API"],
+        "description": "Get list berita / pengumuman",
         "responses": {
           "200": {
-            "description": "Success get contact",
+            "description": "Success get list news data",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": { "type": "string" },
-                        "first_name": { "type": "string" },
-                        "last_name": { "type": "string" },
-                        "email": { "type": "string" },
-                        "phone": { "type": "string" },
-                        "created_at": { "type": "number" },
-                        "updated_at": { "type": "number" }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": ["Contact API"],
-        "description": "Update contact by id",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "required": true,
-            "schema": { "type": "string" }
-          },
-          {
-            "name": "contactId",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string" }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "first_name": { "type": "string" },
-                  "last_name": { "type": "string" },
-                  "email": { "type": "string" },
-                  "phone": { "type": "string" }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success update contact",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": { "type": "string" },
-                        "first_name": { "type": "string" },
-                        "last_name": { "type": "string" },
-                        "email": { "type": "string" },
-                        "phone": { "type": "string" },
-                        "created_at": { "type": "number" },
-                        "updated_at": { "type": "number" }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": ["Contact API"],
-        "description": "Delete contact by id",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "required": true,
-            "schema": { "type": "string" }
-          },
-          {
-            "name": "contactId",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success delete contact",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": { "data": { "type": "boolean" } }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/contacts/{contactId}/addresses": {
-      "post": {
-        "tags": ["Address API"],
-        "description": "Create new address",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "required": true,
-            "schema": { "type": "string" }
-          },
-          {
-            "name": "contactId",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string" }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "street": { "type": "string" },
-                  "city": { "type": "string" },
-                  "province": { "type": "string" },
-                  "country": { "type": "string" },
-                  "postal_code": { "type": "string" }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success create new address",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": { "type": "string" },
-                        "street": { "type": "string" },
-                        "city": { "type": "string" },
-                        "province": { "type": "string" },
-                        "country": { "type": "string" },
-                        "postal_code": { "type": "string" },
-                        "created_at": { "type": "number" },
-                        "updated_at": { "type": "number" }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "get": {
-        "tags": ["Address API"],
-        "description": "Get all addresses",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "required": true,
-            "schema": { "type": "string" }
-          },
-          {
-            "name": "contactId",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success get list of addresses",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success", "error"],
+                      "default": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "default": "Get data successfully"
+                    },
                     "data": {
                       "type": "array",
                       "items": {
                         "type": "object",
                         "properties": {
-                          "id": { "type": "string" },
-                          "street": { "type": "string" },
-                          "city": { "type": "string" },
-                          "province": { "type": "string" },
-                          "country": { "type": "string" },
-                          "postal_code": { "type": "string" },
-                          "created_at": { "type": "number" },
-                          "updated_at": { "type": "number" }
+                          "id": {
+                            "type": "string",
+                            "example": "id-1"
+                          },
+                          "title": {
+                            "type": "string",
+                            "example": "judul pengumuman 1"
+                          },
+                          "description": {
+                            "type": "string",
+                            "example": "deskripsi berita atau pengumuman 1"
+                          },
+                          "date": {
+                            "type": "string",
+                            "example": "17-08-2025"
+                          }
                         }
                       }
                     }
@@ -633,49 +257,56 @@
         }
       }
     },
-    "/api/contacts/{contactId}/addresses/{addressId}": {
+    "/api/news/{id}": {
       "get": {
-        "tags": ["Address API"],
-        "description": "Get address by id",
+        "security": [{ "JwtAuth": [] }],
+        "tags": ["Dashboard API"],
+        "description": "Melihat detail berita/ pengumuman",
         "parameters": [
           {
-            "name": "Authorization",
-            "in": "header",
-            "required": true,
-            "schema": { "type": "string" }
-          },
-          {
-            "name": "contactId",
+            "name": "id",
             "in": "path",
-            "required": true,
-            "schema": { "type": "string" }
-          },
-          {
-            "name": "addressId",
-            "in": "path",
+            "description": "newsId",
             "required": true,
             "schema": { "type": "string" }
           }
         ],
         "responses": {
           "200": {
-            "description": "Success create new address",
+            "description": "Success get detail news",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success", "error"],
+                      "default": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "default": "Get data successfully"
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
-                        "id": { "type": "string" },
-                        "street": { "type": "string" },
-                        "city": { "type": "string" },
-                        "province": { "type": "string" },
-                        "country": { "type": "string" },
-                        "postal_code": { "type": "string" },
-                        "created_at": { "type": "number" },
-                        "updated_at": { "type": "number" }
+                        "id": {
+                          "type": "string",
+                          "example": "id-1"
+                        },
+                        "title": {
+                          "type": "string",
+                          "example": "title-1"
+                        },
+                        "description": {
+                          "type": "string",
+                          "example": "description-1"
+                        },
+                        "date": {
+                          "type": "string",
+                          "example": "17-08-2025"
+                        }
                       }
                     }
                   }
@@ -684,65 +315,57 @@
             }
           }
         }
-      },
-      "put": {
-        "tags": ["Address API"],
-        "description": "Update address by id",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "required": true,
-            "schema": { "type": "string" }
-          },
-          {
-            "name": "contactId",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string" }
-          },
-          {
-            "name": "addressId",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string" }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "street": { "type": "string" },
-                  "city": { "type": "string" },
-                  "province": { "type": "string" },
-                  "country": { "type": "string" },
-                  "postal_code": { "type": "string" }
-                }
-              }
-            }
-          }
-        },
+      }
+    },
+
+    "/api/achievements": {
+      "get": {
+        "security": [{ "JwtAuth": [] }],
+        "tags": ["Dashboard API"],
+        "description": "Get list prestasi siswa / sekolah",
         "responses": {
           "200": {
-            "description": "Success create new address",
+            "description": "Success get list of achievement data",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success", "error"],
+                      "default": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "default": "Get data successfully"
+                    },
                     "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": { "type": "string" },
-                        "street": { "type": "string" },
-                        "city": { "type": "string" },
-                        "province": { "type": "string" },
-                        "country": { "type": "string" },
-                        "postal_code": { "type": "string" },
-                        "created_at": { "type": "number" },
-                        "updated_at": { "type": "number" }
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "example": "id-1"
+                          },
+                          "title": {
+                            "type": "string",
+                            "example": "judul pengharagaan 1"
+                          },
+                          "description": {
+                            "type": "string",
+                            "example": "deskripsi berita atau pengharagaan 1"
+                          },
+                          "date": {
+                            "type": "string",
+                            "example": "17-08-2025"
+                          },
+                          "image": {
+                            "type": "string",
+                            "example": "https://image.com"
+                          }
+                        }
                       }
                     }
                   }
@@ -751,42 +374,89 @@
             }
           }
         }
-      },
-      "delete": {
-        "tags": ["Address API"],
-        "description": "Delete address by id",
+      }
+    },
+    "/api/achievement/{id}": {
+      "get": {
+        "security": [{ "JwtAuth": [] }],
+        "tags": ["Dashboard API"],
+        "description": "Melihat detail penghargaan siswa / sekolah",
         "parameters": [
           {
-            "name": "Authorization",
-            "in": "header",
-            "required": true,
-            "schema": { "type": "string" }
-          },
-          {
-            "name": "contactId",
+            "name": "id",
             "in": "path",
-            "required": true,
-            "schema": { "type": "string" }
-          },
-          {
-            "name": "addressId",
-            "in": "path",
+            "description": "achievementId",
             "required": true,
             "schema": { "type": "string" }
           }
         ],
         "responses": {
           "200": {
-            "description": "Success create new address",
+            "description": "Success get detail data achievement",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": { "data": { "type": "boolean" } }
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success", "error"],
+                      "default": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "default": "Get data successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "example": "id-1"
+                        },
+                        "title": {
+                          "type": "string",
+                          "example": "title-1"
+                        },
+                        "description": {
+                          "type": "string",
+                          "example": "description-1"
+                        },
+                        "date": {
+                          "type": "string",
+                          "example": "17-08-2025"
+                        },
+                        "image": {
+                          "type": "string",
+                          "example": "https://image.com"
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
           }
+        }
+      }
+    }
+  },
+
+  "components": {
+    "securitySchemes": {
+      "JwtAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Authorization",
+        "description": "Enter the token with the `Bearer ` prefix, e.g. Bearer abcde12345"
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "example": "error" },
+          "message": { "type": "string", "example": "error.message" }
         }
       }
     }
