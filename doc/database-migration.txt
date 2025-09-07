@@ -9,7 +9,7 @@
 4. write the sql command in migration file up and down both mandatory
 
 5. execute migration: $ migrate -database "mysql://[user]:[passsword]@tcp(localhost:3306)/[db_name]" -path [directory migration file] [up/down]
-=> migrate -database "mysql://root:root@tcp(localhost:3306)/kamipa_db" -path migrations up
+=> migrate -database "mysql://root:@tcp(localhost:3306)/kamipa_db" -path migrations up
 
 
 ==== CARA TURUN VERSI MIGRASI ===
