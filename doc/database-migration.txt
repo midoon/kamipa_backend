@@ -1,0 +1,31 @@
+1. install golang migrate: $ go install -tags ‘database1,database2’ github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+=> go install -tags 'postgres,mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+
+2. Generate file migration: $ migrate create -ext [extention file] -dir [directory of migration file] [name of migration]
+=> migrate create -ext sql -dir migrations create_table_user
+
+3. migration up for create or update table, migration down for rollback, ex: delete tebale
+
+4. write the sql command in migration file up and down both mandatory
+
+5. execute migration: $ migrate -database "mysql://[user]:[passsword]@tcp(localhost:3306)/[db_name]" -path [directory migration file] [up/down]
+=> migrate -database "mysql://root:root@tcp(localhost:3306)/kamipa_db" -path migrations up
+
+
+==== CARA TURUN VERSI MIGRASI ===
+migrate -database "mysql://root:root@tcp(localhost:3306)/kamipa_db" -path migrations down 1
+
+=== NOTE IF DIRTY DB IS EXIST ==
+
+1. kembali ke versi migrasi sebelum DIRTY
+=> migrate -database "mysql://root:root@tcp(localhost:3306)/kamipa_db" -path migrations force [versi migration]
+=> migrate -database "mysql://root:root@tcp(localhost:3306)/kamipa_db" -path migrations force 20240309044322
+
+2. perbaiki file migrations
+
+3, hapus table yang salah tadi
+
+4. jalankan migrations up
+
+#. untuk melihat versi migrasi saat ini
+=> migrate -database "mysql://root:root@tcp(localhost:3306)/kamipa_db" -path migrations version
