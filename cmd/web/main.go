@@ -5,16 +5,18 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/midoon/kamipa_backend/internal/configs"
 )
 
 func main() {
+	cnf := configs.GetConfig()
 	r := mux.NewRouter()
 
 	r.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Hello, World!"))
 	})
 
-	addr := ":9000"
+	addr := fmt.Sprintf("%s:%s", cnf.Server.Host, cnf.Server.Port)
 	server := &http.Server{
 		Addr:    addr,
 		Handler: r,
