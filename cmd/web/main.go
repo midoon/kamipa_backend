@@ -10,6 +10,13 @@ import (
 
 func main() {
 	cnf := configs.GetConfig()
+
+	kamipaDB := configs.KamipaNewDatabase(cnf)
+	simipaDB := configs.SimipaNewDatabase(cnf)
+
+	fmt.Println("Kamipa DB connected:", kamipaDB != nil)
+	fmt.Println("Simipa DB connected:", simipaDB != nil)
+
 	r := mux.NewRouter()
 
 	r.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
