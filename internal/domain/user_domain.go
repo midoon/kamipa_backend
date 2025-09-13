@@ -4,6 +4,7 @@ import (
 	"context"
 
 	kamipa_entity "github.com/midoon/kamipa_backend/internal/entity/kamipa_entitiy"
+	"github.com/midoon/kamipa_backend/internal/model"
 )
 
 type UserRepository interface {
@@ -12,4 +13,5 @@ type UserRepository interface {
 }
 
 type UserUseCase interface {
+	Register(ctx context.Context, request model.RegistrationUserRequest) error
 }

@@ -1,18 +1,18 @@
 package model
 
 type MessageResponse struct {
-	Status  string `json:"status"`
+	Status  bool   `json:"status"`
 	Message string `json:"message"`
 }
 
 type DataResponse[T any] struct {
-	Status  string `json:"status"`
+	Status  bool   `json:"status"`
 	Message string `json:"message"`
 	Data    T      `json:"data"`
 }
 
 type PageResponse[T any] struct {
-	Status   string       `json:"status"`
+	Status   bool         `json:"status"`
 	Message  string       `json:"message"`
 	Data     []T          `json:"data"`
 	Metadata PageMetadata `json:"metadata"`
