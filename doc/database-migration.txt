@@ -13,7 +13,7 @@
 
 
 ==== CARA TURUN VERSI MIGRASI ===
-migrate -database "mysql://root:root@tcp(localhost:3306)/kamipa_db" -path migrations down 1
+migrate -database "mysql://root:@tcp(localhost:3306)/kamipa_db" -path migrations down 1
 
 === NOTE IF DIRTY DB IS EXIST ==
 

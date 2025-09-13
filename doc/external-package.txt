@@ -2,3 +2,4 @@ gorila-mux: $ go get -u github.com/gorilla/mux
 GROM: $ go get -u gorm.io/gorm
 GORM-DRIVER: $ go get -u gorm.io/driver/mysql
 DOTENV: $ go get github.com/joho/godotenv
+UUD: $ go get github.com/google/uuid
