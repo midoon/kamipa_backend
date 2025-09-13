@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 
+	"github.com/midoon/kamipa_backend/internal/domain"
 	"github.com/midoon/kamipa_backend/internal/entity/simipa_entity"
 	"gorm.io/gorm"
 )
@@ -11,7 +12,7 @@ type studentRepository struct {
 	simipaDB *gorm.DB
 }
 
-func NewStudentRepository(simipaDB *gorm.DB) *studentRepository {
+func NewStudentRepository(simipaDB *gorm.DB) domain.StudentRepository {
 	return &studentRepository{
 		simipaDB: simipaDB,
 	}

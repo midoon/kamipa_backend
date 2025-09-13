@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 
+	"github.com/midoon/kamipa_backend/internal/domain"
 	kamipa_entity "github.com/midoon/kamipa_backend/internal/entity/kamipa_entitiy"
 	"gorm.io/gorm"
 )
@@ -12,7 +13,7 @@ type userRepository struct {
 	kamipaDB *gorm.DB
 }
 
-func NewUserRepository(kamipaDB *gorm.DB) *userRepository {
+func NewUserRepository(kamipaDB *gorm.DB) domain.UserRepository {
 	return &userRepository{
 		kamipaDB: kamipaDB,
 	}
