@@ -27,3 +27,13 @@ func (r *userRepository) Store(ctx context.Context, user *kamipa_entity.User) er
 	}
 	return nil
 }
+
+func (r *userRepository) CountByEmail(ctx context.Context, email string) (int16, error) {
+	var count int64
+	err := r.kamipaDB.WithContext(ctx).Model(&kamipa_entity.User{}).Where("email = ?", email).Count(&count).Error
+	if err != nil {
+		log.Println(err)
+		return 0, err
+	}
+	return int16(count), nil
+}

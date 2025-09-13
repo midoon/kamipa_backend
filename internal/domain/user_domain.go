@@ -8,6 +8,7 @@ import (
 
 type UserRepository interface {
 	Store(ctx context.Context, user *kamipa_entity.User) error
+	CountByEmail(ctx context.Context, email string) (int16, error)
 }
 
 type UserUseCase interface {
