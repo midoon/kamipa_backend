@@ -19,10 +19,11 @@ type userUsecase struct {
 	validate    *validator.Validate
 }
 
-func NewUserRepository(userRepo domain.UserRepository, studentRepo domain.StudentRepository) domain.UserUseCase {
+func NewUserRepository(validate *validator.Validate, userRepo domain.UserRepository, studentRepo domain.StudentRepository) domain.UserUseCase {
 	return &userUsecase{
 		userRepo:    userRepo,
 		studentRepo: studentRepo,
+		validate:    validate,
 	}
 }
 
@@ -40,6 +41,8 @@ func (u *userUsecase) Register(ctx context.Context, request model.RegistrationUs
 	if count > 0 {
 		return helper.NewCustomError(http.StatusConflict, "email already exists", nil)
 	}
+
+	// counte by NISN
 
 	student, err := u.studentRepo.GetByNisn(ctx, request.StudentNisn)
 	if err != nil {

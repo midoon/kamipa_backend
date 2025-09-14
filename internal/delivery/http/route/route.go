@@ -6,22 +6,22 @@ import (
 )
 
 type RouteConfig struct {
-	router         *mux.Router
-	userController *controller.UserController
+	Router         *mux.Router
+	UserController *controller.UserController
 }
 
 func (rc *RouteConfig) Setup() {
-	rc.SetupPublicRoute()
-	rc.SetupPrivateRoute()
+	rc.setupPublicRoute()
+	rc.setupPrivateRoute()
 }
 
 // without middleware
-func (rc *RouteConfig) SetupPublicRoute() {
-	rc.router.HandleFunc("/api/auth/register", rc.userController.Register).Methods("POST")
+func (rc *RouteConfig) setupPublicRoute() {
+	rc.Router.HandleFunc("/api/auth/register", rc.UserController.Register).Methods("POST")
 }
 
 // with middleware
-func (rc *RouteConfig) SetupPrivateRoute() {
+func (rc *RouteConfig) setupPrivateRoute() {
 	// auth := rc.router.NewRoute().Subrouter()
 	// auth.Use(AuthMiddleware)
 	// auth.HandleFunc("/users", UsersHandler).Methods("GET")

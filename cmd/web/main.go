@@ -13,14 +13,15 @@ func main() {
 
 	kamipaDB := configs.KamipaNewDatabase(cnf)
 	simipaDB := configs.SimipaNewDatabase(cnf)
-
-	fmt.Println("Kamipa DB connected:", kamipaDB != nil)
-	fmt.Println("Simipa DB connected:", simipaDB != nil)
+	validate := configs.NewValidator()
 
 	r := mux.NewRouter()
 
-	r.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Hello, World!"))
+	configs.BootStrap(&configs.BootstrapConfig{
+		KamipaDB: kamipaDB,
+		SimipaDB: simipaDB,
+		Router:   r,
+		Validate: validate,
 	})
 
 	addr := fmt.Sprintf("%s:%s", cnf.Server.Host, cnf.Server.Port)

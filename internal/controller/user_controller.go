@@ -36,7 +36,7 @@ func (c *UserController) Register(w http.ResponseWriter, r *http.Request) {
 
 		helper.WriteJSON(w, customErr.Code, model.MessageResponse{
 			Status:  false,
-			Message: customErr.Message,
+			Message: customErr.Error(),
 		})
 		return
 	}
