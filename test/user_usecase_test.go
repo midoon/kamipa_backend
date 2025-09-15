@@ -2,7 +2,6 @@ package test
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/go-playground/validator/v10"
@@ -10,6 +9,7 @@ import (
 	"github.com/midoon/kamipa_backend/internal/model"
 	"github.com/midoon/kamipa_backend/internal/usecase"
 	"github.com/midoon/kamipa_backend/test/mockrepo"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -45,7 +45,9 @@ func TestUserRegister(t *testing.T) {
 			}, nil)
 
 		err := userUsecase.Register(ctx, userRegister1)
-		fmt.Println(err)
+		assert.NoError(t, err)
+		userRepo.Mock.AssertExpectations(t)
+		studentRepo.Mock.AssertExpectations(t)
 	})
 
 }
