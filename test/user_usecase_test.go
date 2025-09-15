@@ -2,6 +2,7 @@ package test
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/go-playground/validator/v10"
@@ -22,8 +23,6 @@ func setup() (*mockrepo.UserRepositoryMock, *mockrepo.StudentRepositoryMock, *va
 }
 
 func TestUserRegister(t *testing.T) {
-	userRepo, studentRepo, validate, ctx := setup()
-	userUsecase := usecase.NewUserUsecase(validate, userRepo, studentRepo)
 
 	userRegister1 := model.RegistrationUserRequest{
 		Email:       "user1@gmail.com",
@@ -32,6 +31,8 @@ func TestUserRegister(t *testing.T) {
 	}
 
 	t.Run("success register", func(t *testing.T) {
+		userRepo, studentRepo, validate, ctx := setup()
+		userUsecase := usecase.NewUserUsecase(validate, userRepo, studentRepo)
 		// mocking ngga boleh di hardcode,, dan parameternya harus sama dengan yang di usecase
 		userRepo.Mock.On("Store", mock.Anything, mock.AnythingOfType("*kamipa_entity.User")).Return(nil)
 		userRepo.Mock.On("CountByEmail", mock.Anything, mock.AnythingOfType("string")).Return(int16(0), nil)
@@ -48,6 +49,49 @@ func TestUserRegister(t *testing.T) {
 		assert.NoError(t, err)
 		userRepo.Mock.AssertExpectations(t)
 		studentRepo.Mock.AssertExpectations(t)
+	})
+
+	t.Run("error validation", func(t *testing.T) {
+		userRepo, studentRepo, validate, ctx := setup()
+		userUsecase := usecase.NewUserUsecase(validate, userRepo, studentRepo)
+
+		invalidReq := model.RegistrationUserRequest{} // kosong semua -> invalid
+
+		err := userUsecase.Register(ctx, invalidReq)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "validation error")
+	})
+
+	t.Run("duplicate user", func(t *testing.T) {
+		userRepo, studentRepo, validate, ctx := setup()
+		userUsecase := usecase.NewUserUsecase(validate, userRepo, studentRepo)
+
+		userRepo.Mock.On("Store", mock.Anything, mock.AnythingOfType("*kamipa_entity.User")).Return(nil)
+		userRepo.Mock.On("CountByEmail", mock.Anything, mock.AnythingOfType("string")).Return(int16(1), nil)
+		studentRepo.Mock.On("GetByNisn", mock.Anything, mock.AnythingOfType("string")).
+			Return(simipa_entity.Student{
+				ID:      1,
+				GroupId: 1,
+				Name:    "student-name",
+				Nisn:    "1312",
+				Gender:  "laki-laki",
+			}, nil)
+
+		err := userUsecase.Register(ctx, userRegister1)
+		assert.Contains(t, err.Error(), "email already exists")
+	})
+
+	t.Run("wrong student nisn", func(t *testing.T) {
+		userRepo, studentRepo, validate, ctx := setup()
+		userUsecase := usecase.NewUserUsecase(validate, userRepo, studentRepo)
+
+		userRepo.Mock.On("Store", mock.Anything, mock.AnythingOfType("*kamipa_entity.User")).Return(nil)
+		userRepo.Mock.On("CountByEmail", mock.Anything, mock.AnythingOfType("string")).Return(int16(0), nil)
+		studentRepo.Mock.On("GetByNisn", mock.Anything, mock.AnythingOfType("string")).
+			Return(simipa_entity.Student{}, errors.New("record not found"))
+
+		err := userUsecase.Register(ctx, userRegister1)
+		assert.Contains(t, err.Error(), "failed to get student by NISN")
 	})
 
 }
