@@ -2,10 +2,9 @@ package mockrepo
 
 import (
 	"context"
-	"net/http"
+	"errors"
 
 	kamipa_entity "github.com/midoon/kamipa_backend/internal/entity/kamipa_entitiy"
-	"github.com/midoon/kamipa_backend/internal/helper"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -18,8 +17,9 @@ func (r *UserRepositoryMock) Store(ctx context.Context, user *kamipa_entity.User
 	// Jadi arguments[0] = return pertama, arguments[1] = return kedua.
 	// Bukan argumen yang dikirim ke fungsi.
 	arguments := r.Mock.Called(ctx, user)
-	if arguments.Get(0) == nil {
-		return helper.NewCustomError(http.StatusInternalServerError, "failed to store user", nil)
+	// jika ada error
+	if arguments.Get(0) != nil {
+		return errors.New("DB ERROR")
 	}
 
 	return nil
@@ -29,8 +29,14 @@ func (r *UserRepositoryMock) CountByEmail(ctx context.Context, email string) (in
 	// Jadi arguments[0] = return pertama, arguments[1] = return kedua.
 	// Bukan argumen yang dikirim ke fungsi.
 	arguments := r.Mock.Called(ctx, email)
-	if arguments.Get(0) == nil {
-		return 0, helper.NewCustomError(http.StatusInternalServerError, "failed to store user", nil)
+
+	// jika return value ada error
+	if arguments.Get(1) != nil {
+		return 0, errors.New("DB ERROR")
+	}
+
+	if arguments.Get(0) != 0 {
+		return arguments.Get(0).(int16), nil
 	}
 
 	return 0, nil
