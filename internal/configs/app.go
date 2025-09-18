@@ -8,27 +8,27 @@ import (
 	"github.com/midoon/kamipa_backend/internal/repository"
 	"github.com/midoon/kamipa_backend/internal/usecase"
 	"github.com/midoon/kamipa_backend/internal/util"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
 type BootstrapConfig struct {
-	KamipaDB *gorm.DB
-	SimipaDB *gorm.DB
-	Router   *mux.Router
-	Validate *validator.Validate
-	// config    *Config
+	KamipaDB    *gorm.DB
+	SimipaDB    *gorm.DB
+	Router      *mux.Router
+	Validate    *validator.Validate
+	Cnf         *ConfigApp
+	RedisClient *redis.Client
 }
 
 func BootStrap(bs *BootstrapConfig) {
 
-	cnf := GetConfig()
+	// redisClient := GetRedisClient(bs.Cnf.Redis.Addr, 0)
 
-	redisClient := GetRedisClient(cnf.Redis.Addr, 0)
-
-	tokenUtil := util.NewTokenUtil(cnf.JWT.Key, redisClient)
+	tokenUtil := util.NewTokenUtil(bs.Cnf.JWT.Key, bs.RedisClient)
 
 	// setup repository
-	redisRepository := repository.NewRedisRepository(redisClient)
+	redisRepository := repository.NewRedisRepository(bs.RedisClient)
 	userRepository := repository.NewUserRepository(bs.KamipaDB)
 	studentRepository := repository.NewStudentRepository(bs.SimipaDB)
 

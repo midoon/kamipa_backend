@@ -97,15 +97,9 @@ func (u *userUsecase) Login(ctx context.Context, request model.LoginUserRequest)
 	}
 
 	redisKey := fmt.Sprintf("refresh_token:%s", user.ID)
-	result, err := u.redisRepo.DeleteData(ctx, redisKey)
+	_, err = u.redisRepo.DeleteData(ctx, redisKey)
 	if err != nil {
 		return model.TokenDataResponse{}, helper.NewCustomError(http.StatusInternalServerError, "redis error :", err)
-	}
-
-	if result > 0 {
-		fmt.Println("Berhadil hapus data existing refresh token from redis")
-	} else {
-		fmt.Println("Tidak ada data yang dihapus")
 	}
 
 	// generate token

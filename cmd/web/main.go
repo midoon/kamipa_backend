@@ -14,14 +14,17 @@ func main() {
 	kamipaDB := configs.KamipaNewDatabase(cnf)
 	simipaDB := configs.SimipaNewDatabase(cnf)
 	validate := configs.NewValidator()
+	redisClient := configs.GetRedisClient(cnf.Redis.Addr, 0)
 
 	r := mux.NewRouter()
 
 	configs.BootStrap(&configs.BootstrapConfig{
-		KamipaDB: kamipaDB,
-		SimipaDB: simipaDB,
-		Router:   r,
-		Validate: validate,
+		KamipaDB:    kamipaDB,
+		SimipaDB:    simipaDB,
+		Router:      r,
+		Validate:    validate,
+		Cnf:         cnf,
+		RedisClient: redisClient,
 	})
 
 	addr := fmt.Sprintf("%s:%s", cnf.Server.Host, cnf.Server.Port)
