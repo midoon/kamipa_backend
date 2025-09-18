@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-func KamipaNewDatabase(cnf *Config) *gorm.DB {
+func KamipaNewDatabase(cnf *ConfigApp) *gorm.DB {
 	username := cnf.KamipaDB.Username
 	password := cnf.KamipaDB.Password
 	host := cnf.KamipaDB.Host
@@ -29,7 +29,7 @@ func KamipaNewDatabase(cnf *Config) *gorm.DB {
 	return db
 }
 
-func SimipaNewDatabase(cnf *Config) *gorm.DB {
+func SimipaNewDatabase(cnf *ConfigApp) *gorm.DB {
 	username := cnf.SimipaDB.Username
 	password := cnf.SimipaDB.Password
 	host := cnf.SimipaDB.Host

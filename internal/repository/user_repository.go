@@ -37,3 +37,14 @@ func (r *userRepository) CountByEmail(ctx context.Context, email string) (int16,
 	}
 	return int16(count), nil
 }
+
+func (r *userRepository) GetByNisn(ctx context.Context, nisn string) (kamipa_entity.User, error) {
+	var user kamipa_entity.User
+
+	err := r.kamipaDB.WithContext(ctx).Where("student_nisn = ?", nisn).First(&user).Error
+	if err != nil {
+		return kamipa_entity.User{}, err
+	}
+
+	return user, nil
+}

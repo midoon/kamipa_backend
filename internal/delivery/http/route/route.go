@@ -18,6 +18,7 @@ func (rc *RouteConfig) Setup() {
 // without middleware
 func (rc *RouteConfig) setupPublicRoute() {
 	rc.Router.HandleFunc("/api/auth/register", rc.UserController.Register).Methods("POST")
+	rc.Router.HandleFunc("/api/auth/login", rc.UserController.Login).Methods("POST")
 }
 
 // with middleware

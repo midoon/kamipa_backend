@@ -7,6 +7,7 @@ import (
 	"github.com/midoon/kamipa_backend/internal/delivery/http/route"
 	"github.com/midoon/kamipa_backend/internal/repository"
 	"github.com/midoon/kamipa_backend/internal/usecase"
+	"github.com/midoon/kamipa_backend/internal/util"
 	"gorm.io/gorm"
 )
 
@@ -19,12 +20,22 @@ type BootstrapConfig struct {
 }
 
 func BootStrap(bs *BootstrapConfig) {
+
+	cnf := GetConfig()
+
+	// redisClient := redis.NewClient(&redis.Options{
+	// 	Addr: "localhost:6379",
+	// 	DB:   0,
+	// })
+
+	tokenUtil := util.NewTokenUtil(cnf.JWT.Key, nil)
+
 	// setup repository
 	userRepository := repository.NewUserRepository(bs.KamipaDB)
 	studentRepository := repository.NewStudentRepository(bs.SimipaDB)
 
 	// setup usecase
-	userUsecase := usecase.NewUserUsecase(bs.Validate, userRepository, studentRepository)
+	userUsecase := usecase.NewUserUsecase(bs.Validate, userRepository, studentRepository, tokenUtil)
 
 	// setup controller
 	userController := controller.NewUserController(userUsecase)

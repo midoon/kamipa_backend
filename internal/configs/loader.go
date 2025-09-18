@@ -7,7 +7,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type Config struct {
+type ConfigApp struct {
 	Server   Server
 	KamipaDB KamipaDatabase
 	SimipaDB SimipaDatabase
@@ -15,13 +15,13 @@ type Config struct {
 	Redis    Redis
 }
 
-func GetConfig() *Config {
+func GetConfig() *ConfigApp {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
 
-	return &Config{
+	return &ConfigApp{
 		Server: Server{
 			Host: os.Getenv("SERVER_HOST"),
 			Port: os.Getenv("SERVER_PORT"),
