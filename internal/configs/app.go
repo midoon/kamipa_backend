@@ -24,7 +24,7 @@ func BootStrap(bs *BootstrapConfig) {
 	studentRepository := repository.NewStudentRepository(bs.SimipaDB)
 
 	// setup usecase
-	userUsecase := usecase.NewUserRepository(bs.Validate, userRepository, studentRepository)
+	userUsecase := usecase.NewUserUsecase(bs.Validate, userRepository, studentRepository)
 
 	// setup controller
 	userController := controller.NewUserController(userUsecase)

@@ -4,3 +4,4 @@ GORM-DRIVER: $ go get -u gorm.io/driver/mysql
 DOTENV: $ go get github.com/joho/godotenv
 UUD: $ go get github.com/google/uuid
 VALIDATOR: $ go get github.com/go-playground/validator/v10
+TESTIFY: $ go get github.com/stretchr/testify

@@ -19,7 +19,7 @@ type userUsecase struct {
 	validate    *validator.Validate
 }
 
-func NewUserRepository(validate *validator.Validate, userRepo domain.UserRepository, studentRepo domain.StudentRepository) domain.UserUseCase {
+func NewUserUsecase(validate *validator.Validate, userRepo domain.UserRepository, studentRepo domain.StudentRepository) domain.UserUseCase {
 	return &userUsecase{
 		userRepo:    userRepo,
 		studentRepo: studentRepo,
