@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -20,14 +21,16 @@ type userUsecase struct {
 	studentRepo domain.StudentRepository
 	validate    *validator.Validate
 	tokenUtil   *util.TokenUtil
+	redisRepo   domain.RedisRepository
 }
 
-func NewUserUsecase(validate *validator.Validate, userRepo domain.UserRepository, studentRepo domain.StudentRepository, tokenUtil *util.TokenUtil) domain.UserUseCase {
+func NewUserUsecase(validate *validator.Validate, userRepo domain.UserRepository, studentRepo domain.StudentRepository, tokenUtil *util.TokenUtil, redisRepo domain.RedisRepository) domain.UserUseCase {
 	return &userUsecase{
 		userRepo:    userRepo,
 		studentRepo: studentRepo,
 		validate:    validate,
 		tokenUtil:   tokenUtil,
+		redisRepo:   redisRepo,
 	}
 }
 
@@ -93,6 +96,18 @@ func (u *userUsecase) Login(ctx context.Context, request model.LoginUserRequest)
 		return model.TokenDataResponse{}, helper.NewCustomError(http.StatusUnauthorized, "NISN or password wrong", err)
 	}
 
+	redisKey := fmt.Sprintf("refresh_token:%s", user.ID)
+	result, err := u.redisRepo.DeleteData(ctx, redisKey)
+	if err != nil {
+		return model.TokenDataResponse{}, helper.NewCustomError(http.StatusInternalServerError, "redis error :", err)
+	}
+
+	if result > 0 {
+		fmt.Println("Berhadil hapus data existing refresh token from redis")
+	} else {
+		fmt.Println("Tidak ada data yang dihapus")
+	}
+
 	// generate token
 	expAT := time.Now().Add(time.Hour * 24).UnixMilli()
 	access_token, err := u.tokenUtil.CreateToken(ctx, &user, expAT)
@@ -107,6 +122,10 @@ func (u *userUsecase) Login(ctx context.Context, request model.LoginUserRequest)
 	}
 
 	// store refresh token to redis db
+	ttl := time.Until(time.Now().Add(time.Hour * 24 * 30))
+	if err = u.redisRepo.SetDataString(ctx, redisKey, refresh_token, ttl); err != nil {
+		return model.TokenDataResponse{}, helper.NewCustomError(http.StatusInternalServerError, "redis error :", err)
+	}
 
 	return model.TokenDataResponse{
 		AccessToken:  access_token,

@@ -23,19 +23,17 @@ func BootStrap(bs *BootstrapConfig) {
 
 	cnf := GetConfig()
 
-	// redisClient := redis.NewClient(&redis.Options{
-	// 	Addr: "localhost:6379",
-	// 	DB:   0,
-	// })
+	redisClient := GetRedisClient(cnf.Redis.Addr, 0)
 
-	tokenUtil := util.NewTokenUtil(cnf.JWT.Key, nil)
+	tokenUtil := util.NewTokenUtil(cnf.JWT.Key, redisClient)
 
 	// setup repository
+	redisRepository := repository.NewRedisRepository(redisClient)
 	userRepository := repository.NewUserRepository(bs.KamipaDB)
 	studentRepository := repository.NewStudentRepository(bs.SimipaDB)
 
 	// setup usecase
-	userUsecase := usecase.NewUserUsecase(bs.Validate, userRepository, studentRepository, tokenUtil)
+	userUsecase := usecase.NewUserUsecase(bs.Validate, userRepository, studentRepository, tokenUtil, redisRepository)
 
 	// setup controller
 	userController := controller.NewUserController(userUsecase)
