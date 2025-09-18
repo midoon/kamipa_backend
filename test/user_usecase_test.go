@@ -57,8 +57,8 @@ func TestUserRegister(t *testing.T) {
 	})
 
 	t.Run("error validation", func(t *testing.T) {
-		userRepo, studentRepo, validate, ctx := setup()
-		userUsecase := usecase.NewUserUsecase(validate, userRepo, studentRepo)
+		userRepo, studentRepo, validate, ctx, redisRepo, tokenUtil := setup()
+		userUsecase := usecase.NewUserUsecase(validate, userRepo, studentRepo, tokenUtil, redisRepo)
 
 		invalidReq := model.RegistrationUserRequest{} // kosong semua -> invalid
 
@@ -68,8 +68,8 @@ func TestUserRegister(t *testing.T) {
 	})
 
 	t.Run("duplicate user", func(t *testing.T) {
-		userRepo, studentRepo, validate, ctx := setup()
-		userUsecase := usecase.NewUserUsecase(validate, userRepo, studentRepo)
+		userRepo, studentRepo, validate, ctx, redisRepo, tokenUtil := setup()
+		userUsecase := usecase.NewUserUsecase(validate, userRepo, studentRepo, tokenUtil, redisRepo)
 
 		userRepo.Mock.On("Store", mock.Anything, mock.AnythingOfType("*kamipa_entity.User")).Return(nil)
 		userRepo.Mock.On("CountByEmail", mock.Anything, mock.AnythingOfType("string")).Return(int16(1), nil)
@@ -87,8 +87,8 @@ func TestUserRegister(t *testing.T) {
 	})
 
 	t.Run("wrong student nisn", func(t *testing.T) {
-		userRepo, studentRepo, validate, ctx := setup()
-		userUsecase := usecase.NewUserUsecase(validate, userRepo, studentRepo)
+		userRepo, studentRepo, validate, ctx, redisRepo, tokenUtil := setup()
+		userUsecase := usecase.NewUserUsecase(validate, userRepo, studentRepo, tokenUtil, redisRepo)
 
 		userRepo.Mock.On("Store", mock.Anything, mock.AnythingOfType("*kamipa_entity.User")).Return(nil)
 		userRepo.Mock.On("CountByEmail", mock.Anything, mock.AnythingOfType("string")).Return(int16(0), nil)
