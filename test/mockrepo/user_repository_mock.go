@@ -29,3 +29,12 @@ func (r *UserRepositoryMock) CountByEmail(ctx context.Context, email string) (in
 
 	return count, err
 }
+
+func (r *UserRepositoryMock) GetByNisn(ctx context.Context, nisn string) (kamipa_entity.User, error) {
+	args := r.Mock.Called(ctx, nisn)
+
+	user, _ := args.Get(0).(kamipa_entity.User)
+	err, _ := args.Get(1).(error)
+
+	return user, err
+}

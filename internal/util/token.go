@@ -4,19 +4,19 @@ import (
 	"context"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/midoon/kamipa_backend/internal/domain"
 	kamipa_entity "github.com/midoon/kamipa_backend/internal/entity/kamipa_entitiy"
-	"github.com/redis/go-redis/v9"
 )
 
 type TokenUtil struct {
 	SecretKey string
-	Redis     *redis.Client
+	RedisRepo domain.RedisRepository
 }
 
-func NewTokenUtil(secretKey string, redisClient *redis.Client) *TokenUtil {
+func NewTokenUtil(secretKey string, redisRepo domain.RedisRepository) *TokenUtil {
 	return &TokenUtil{
 		SecretKey: secretKey,
-		Redis:     redisClient,
+		RedisRepo: redisRepo,
 	}
 }
 

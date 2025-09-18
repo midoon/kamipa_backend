@@ -23,14 +23,12 @@ type BootstrapConfig struct {
 
 func BootStrap(bs *BootstrapConfig) {
 
-	// redisClient := GetRedisClient(bs.Cnf.Redis.Addr, 0)
-
-	tokenUtil := util.NewTokenUtil(bs.Cnf.JWT.Key, bs.RedisClient)
-
 	// setup repository
 	redisRepository := repository.NewRedisRepository(bs.RedisClient)
 	userRepository := repository.NewUserRepository(bs.KamipaDB)
 	studentRepository := repository.NewStudentRepository(bs.SimipaDB)
+
+	tokenUtil := util.NewTokenUtil(bs.Cnf.JWT.Key, redisRepository)
 
 	// setup usecase
 	userUsecase := usecase.NewUserUsecase(bs.Validate, userRepository, studentRepository, tokenUtil, redisRepository)
