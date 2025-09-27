@@ -160,4 +160,128 @@ func TestUserLogin(t *testing.T) {
 		deps.userRepo.Mock.AssertExpectations(t)
 		deps.redisRepo.Mock.AssertExpectations(t)
 	})
+
+	t.Run("validation error", func(t *testing.T) {
+		deps := setupDeps()
+		// request kosong supaya kena validator
+		invalidReq := model.LoginUserRequest{}
+		tokenData, err := deps.userUsecase.Login(deps.ctx, invalidReq)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "validation error")
+		assert.Empty(t, tokenData.AccessToken)
+	})
+
+	t.Run("failed get user (repo error)", func(t *testing.T) {
+		deps := setupDeps()
+		// mock GetByNisn return error
+		deps.userRepo.Mock.On("GetByNisn", mock.Anything, mock.AnythingOfType("string")).Return(kamipa_entity.User{}, errors.New("db down"))
+
+		req := model.LoginUserRequest{
+			StudentNisn: "1312",
+			Password:    "12345678",
+		}
+
+		tokenData, err := deps.userUsecase.Login(deps.ctx, req)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to get user")
+		assert.Empty(t, tokenData.AccessToken)
+	})
+
+	t.Run("wrong NISN (user kosong)", func(t *testing.T) {
+		deps := setupDeps()
+		// mock GetByNisn return user kosong tanpa error
+		deps.userRepo.Mock.On("GetByNisn", mock.Anything, mock.AnythingOfType("string")).Return(kamipa_entity.User{}, nil)
+
+		req := model.LoginUserRequest{
+			StudentNisn: "1312",
+			Password:    "12345678",
+		}
+
+		tokenData, err := deps.userUsecase.Login(deps.ctx, req)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "NISN or password wrong")
+		assert.Empty(t, tokenData.AccessToken)
+	})
+
+	t.Run("wrong password", func(t *testing.T) {
+		deps := setupDeps()
+
+		// hash password beda
+		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("passwordlain"), bcrypt.DefaultCost)
+
+		deps.userRepo.Mock.On("GetByNisn", mock.Anything, mock.AnythingOfType("string")).Return(kamipa_entity.User{
+			ID:          "id-1",
+			StudentNisn: "1312",
+			Email:       "user1@gmail.com",
+			Password:    string(hashedPassword),
+		}, nil)
+
+		req := model.LoginUserRequest{
+			StudentNisn: "1312",
+			Password:    "12345678", // password salah
+		}
+
+		tokenData, err := deps.userUsecase.Login(deps.ctx, req)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "NISN or password wrong")
+		assert.Empty(t, tokenData.AccessToken)
+	})
+
+	t.Run("redis error on delete", func(t *testing.T) {
+		deps := setupDeps()
+
+		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("12345678"), bcrypt.DefaultCost)
+
+		deps.userRepo.Mock.On("GetByNisn", mock.Anything, mock.AnythingOfType("string")).Return(kamipa_entity.User{
+			ID:          "id-1",
+			StudentNisn: "1312",
+			Email:       "user1@gmail.com",
+			Password:    string(hashedPassword),
+		}, nil)
+
+		// redis delete error
+		deps.redisRepo.Mock.On("DeleteData", mock.Anything, mock.AnythingOfType("string")).Return(0, errors.New("redis down"))
+
+		req := model.LoginUserRequest{
+			StudentNisn: "1312",
+			Password:    "12345678",
+		}
+
+		tokenData, err := deps.userUsecase.Login(deps.ctx, req)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "redis error")
+		assert.Empty(t, tokenData.AccessToken)
+	})
+
+	t.Run("redis error on set refresh token", func(t *testing.T) {
+		deps := setupDeps()
+
+		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("12345678"), bcrypt.DefaultCost)
+
+		deps.userRepo.Mock.On("GetByNisn", mock.Anything, mock.AnythingOfType("string")).Return(kamipa_entity.User{
+			ID:          "id-1",
+			StudentNisn: "1312",
+			Email:       "user1@gmail.com",
+			Password:    string(hashedPassword),
+		}, nil)
+
+		deps.redisRepo.Mock.On("DeleteData", mock.Anything, mock.AnythingOfType("string")).Return(1, nil)
+		// SetDataString error
+		deps.redisRepo.Mock.On("SetDataString",
+			mock.Anything,
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("time.Duration"),
+		).Return(errors.New("redis down"))
+
+		req := model.LoginUserRequest{
+			StudentNisn: "1312",
+			Password:    "12345678",
+		}
+
+		tokenData, err := deps.userUsecase.Login(deps.ctx, req)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "redis error")
+		assert.Empty(t, tokenData.AccessToken)
+	})
 }
