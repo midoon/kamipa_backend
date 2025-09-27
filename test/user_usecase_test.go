@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/midoon/kamipa_backend/internal/domain"
+	kamipa_entity "github.com/midoon/kamipa_backend/internal/entity/kamipa_entitiy"
 	"github.com/midoon/kamipa_backend/internal/entity/simipa_entity"
 	"github.com/midoon/kamipa_backend/internal/model"
 	"github.com/midoon/kamipa_backend/internal/usecase"
@@ -14,6 +15,7 @@ import (
 	"github.com/midoon/kamipa_backend/test/mockrepo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // func setup() (*mockrepo.UserRepositoryMock, *mockrepo.StudentRepositoryMock, *validator.Validate, context.Context, *mockrepo.RedisRepositoryMock, *util.TokenUtil) {
@@ -119,4 +121,43 @@ func TestUserRegister(t *testing.T) {
 		assert.Contains(t, err.Error(), "failed to get student by NISN")
 	})
 
+}
+
+func TestUserLogin(t *testing.T) {
+
+	userLogin1 := model.LoginUserRequest{
+
+		Password:    "12345678",
+		StudentNisn: "1312",
+	}
+
+	t.Run("success login", func(t *testing.T) {
+		deps := setupDeps()
+
+		// hash password
+		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("12345678"), bcrypt.DefaultCost)
+
+		deps.userRepo.Mock.On("GetByNisn", mock.Anything, mock.AnythingOfType("string")).Return(kamipa_entity.User{
+			ID:          "id-1",
+			StudentNisn: "1312",
+			Email:       "user1@gmail.com",
+			Password:    string(hashedPassword),
+		}, nil)
+
+		// mock redis
+		deps.redisRepo.Mock.On("DeleteData", mock.Anything, mock.AnythingOfType("string")).Return(1, nil)
+		deps.redisRepo.Mock.On("SetDataString",
+			mock.Anything,
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("time.Duration"),
+		).Return(nil)
+
+		tokenData, err := deps.userUsecase.Login(deps.ctx, userLogin1)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, tokenData.AccessToken)
+		assert.NotEmpty(t, tokenData.RefreshToken)
+		deps.userRepo.Mock.AssertExpectations(t)
+		deps.redisRepo.Mock.AssertExpectations(t)
+	})
 }
