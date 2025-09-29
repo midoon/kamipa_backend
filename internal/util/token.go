@@ -2,10 +2,14 @@ package util
 
 import (
 	"context"
+	"fmt"
+	"net/http"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/midoon/kamipa_backend/internal/domain"
 	kamipa_entity "github.com/midoon/kamipa_backend/internal/entity/kamipa_entitiy"
+	"github.com/midoon/kamipa_backend/internal/helper"
 )
 
 type TokenUtil struct {
@@ -34,33 +38,52 @@ func (t TokenUtil) CreateToken(ctx context.Context, user *kamipa_entity.User, ex
 	return jwtToken, nil
 }
 
-func (t TokenUtil) ParseToken(ctx context.Context, jwtToken string) (*kamipa_entity.User, error) {
+func (t TokenUtil) ParseToken(ctx context.Context, jwtToken string) (string, error) {
+	token, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
+		return []byte(t.SecretKey), nil
+	})
+
+	if err != nil {
+		return "", helper.NewCustomError(http.StatusUnauthorized, "Unauthorized", err)
+	}
+
+	claims := token.Claims.(jwt.MapClaims)
+
+	expire := claims["expire"].(float64)
+	if int64(expire) < time.Now().UnixMilli() {
+		return "", helper.NewCustomError(http.StatusUnauthorized, "Token expired", nil)
+	}
+
+	userId := claims["id"].(string)
+	redisKey := fmt.Sprintf("refresh_token:%s", userId)
+
+	result, err := t.RedisRepo.ExistData(ctx, redisKey)
+	if err != nil {
+		return "", helper.NewCustomError(http.StatusInternalServerError, "redis error", err)
+	}
+
+	if result == 0 {
+		return "", helper.NewCustomError(http.StatusUnauthorized, "Unauthorized", err)
+	}
+
+	return userId, nil
 	// token, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
+	// 	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+	// 		return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+	// 	}
 	// 	return []byte(t.SecretKey), nil
 	// })
+
 	// if err != nil {
-	// 	return nil, fiber.ErrUnauthorized
+	// 	return "", err
+	// }
+	// if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+	// 	if id, ok := claims["id"].(string); ok {
+	// 		return id, nil
+	// 	}
+
+	// 	return "", fmt.Errorf("id claim not found or invalid")
 	// }
 
-	// claims := token.Claims.(jwt.MapClaims)
-
-	// expire := claims["expire"].(float64)
-	// if int64(expire) < time.Now().UnixMilli() {
-	// 	return nil, fiber.ErrUnauthorized
-	// }
-
-	// result, err := t.Redis.Exists(ctx, jwtToken).Result()
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// if result == 0 {
-	// 	return nil, fiber.ErrUnauthorized
-	// }
-
-	// id := claims["id"].(string)
-	// auth := &model.Auth{
-	// 	ID: id,
-	// }
-	return &kamipa_entity.User{}, nil
+	// return "", fmt.Errorf("invalid token")
 }

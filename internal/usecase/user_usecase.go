@@ -126,3 +126,18 @@ func (u *userUsecase) Login(ctx context.Context, request model.LoginUserRequest)
 		RefreshToken: refresh_token,
 	}, nil
 }
+
+func (u *userUsecase) Logout(ctx context.Context, userId string) error {
+
+	redisKey := fmt.Sprintf("refresh_token:%s", userId)
+	deleted, err := u.redisRepo.DeleteData(ctx, redisKey)
+	if err != nil {
+		return helper.NewCustomError(http.StatusInternalServerError, "redis error :", err)
+	}
+
+	if deleted == 0 {
+		return helper.NewCustomError(http.StatusNotFound, "no active session found", nil)
+	}
+
+	return nil
+}

@@ -16,4 +16,5 @@ type UserRepository interface {
 type UserUseCase interface {
 	Register(ctx context.Context, request model.RegistrationUserRequest) error
 	Login(ctx context.Context, request model.LoginUserRequest) (model.TokenDataResponse, error)
+	Logout(ctx context.Context, userId string) error
 }

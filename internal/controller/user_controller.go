@@ -80,3 +80,22 @@ func (c *UserController) Login(w http.ResponseWriter, r *http.Request) {
 	helper.WriteJSON(w, http.StatusOK, resp)
 
 }
+
+func (c *UserController) Logout(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	userId := r.Context().Value(helper.UserIDKey).(string)
+
+	if err := c.userUseCase.Logout(ctx, userId); err != nil {
+		customErr := err.(*helper.CustomError)
+		helper.WriteJSON(w, customErr.Code, model.MessageResponse{
+			Status:  false,
+			Message: customErr.Error(),
+		})
+		return
+	}
+
+	helper.WriteJSON(w, http.StatusOK, model.MessageResponse{
+		Status:  true,
+		Message: "logout successfully",
+	})
+}
