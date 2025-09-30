@@ -1,13 +1,18 @@
 package route
 
 import (
+	"net/http"
+
 	"github.com/gorilla/mux"
 	"github.com/midoon/kamipa_backend/internal/controller"
+	"github.com/midoon/kamipa_backend/internal/delivery/http/middleware"
+	"github.com/midoon/kamipa_backend/internal/util"
 )
 
 type RouteConfig struct {
 	Router         *mux.Router
 	UserController *controller.UserController
+	TokenUtil      *util.TokenUtil
 }
 
 func (rc *RouteConfig) Setup() {
@@ -23,9 +28,13 @@ func (rc *RouteConfig) setupPublicRoute() {
 
 // with middleware
 func (rc *RouteConfig) setupPrivateRoute() {
-	// auth := rc.router.NewRoute().Subrouter()
-	// auth.Use(AuthMiddleware)
-	// auth.HandleFunc("/users", UsersHandler).Methods("GET")
-	// auth.HandleFunc("/contacts", ContactsHandler).Methods("GET")
+	api := rc.Router.PathPrefix("/api").Subrouter()
+
+	// inject middleware
+	api.Use(func(next http.Handler) http.Handler {
+		return middleware.AuthMiddleware(rc.TokenUtil, next)
+	})
+
+	api.HandleFunc("/auth/logout", rc.UserController.Logout).Methods("DELETE")
 
 }

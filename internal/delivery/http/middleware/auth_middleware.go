@@ -6,19 +6,27 @@ import (
 	"strings"
 
 	"github.com/midoon/kamipa_backend/internal/helper"
+	"github.com/midoon/kamipa_backend/internal/model"
 	"github.com/midoon/kamipa_backend/internal/util"
 )
 
 func AuthMiddleware(tokenUtil *util.TokenUtil, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
-			http.Error(w, "Authorization header required", http.StatusUnauthorized)
+			helper.WriteJSON(w, http.StatusUnauthorized, model.MessageResponse{
+				Status:  false,
+				Message: "Auhorization header is required",
+			})
 			return
 		}
 
 		if !strings.HasPrefix(authHeader, "Bearer ") {
-			http.Error(w, "Invalid authorization header format", http.StatusUnauthorized)
+			helper.WriteJSON(w, http.StatusUnauthorized, model.MessageResponse{
+				Status:  false,
+				Message: "Invalid Authorization header format",
+			})
 			return
 		}
 
@@ -26,7 +34,12 @@ func AuthMiddleware(tokenUtil *util.TokenUtil, next http.Handler) http.Handler {
 
 		userId, err := tokenUtil.ParseToken(r.Context(), token)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusUnauthorized)
+			customErr := err.(*helper.CustomError)
+
+			helper.WriteJSON(w, customErr.Code, model.MessageResponse{
+				Status:  false,
+				Message: customErr.Error(),
+			})
 			return
 		}
 

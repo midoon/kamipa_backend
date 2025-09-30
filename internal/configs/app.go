@@ -41,6 +41,7 @@ func BootStrap(bs *BootstrapConfig) {
 	routeConfig := route.RouteConfig{
 		Router:         bs.Router,
 		UserController: userController,
+		TokenUtil:      tokenUtil,
 	}
 
 	routeConfig.Setup()
