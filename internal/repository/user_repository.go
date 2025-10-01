@@ -48,3 +48,14 @@ func (r *userRepository) GetByNisn(ctx context.Context, nisn string) (kamipa_ent
 
 	return user, nil
 }
+
+func (r *userRepository) GetById(ctx context.Context, id string) (kamipa_entity.User, error) {
+	var user kamipa_entity.User
+
+	err := r.kamipaDB.WithContext(ctx).Where("id = ?", id).First(&user).Error
+	if err != nil {
+		return kamipa_entity.User{}, err
+	}
+
+	return user, nil
+}

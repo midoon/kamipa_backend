@@ -99,3 +99,35 @@ func (c *UserController) Logout(w http.ResponseWriter, r *http.Request) {
 		Message: "logout successfully",
 	})
 }
+
+func (c *UserController) RefreshToken(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	request := model.RefreshTokenRequest{}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		helper.WriteJSON(w, http.StatusBadRequest, model.MessageResponse{
+			Status:  false,
+			Message: "invalid request body",
+		})
+		return
+	}
+
+	token, err := c.userUseCase.RefreshToken(ctx, request)
+	if err != nil {
+		customErr := err.(*helper.CustomError)
+		helper.WriteJSON(w, customErr.Code, model.MessageResponse{
+			Status:  false,
+			Message: customErr.Error(),
+		})
+		return
+	}
+
+	resp := model.DataResponse[model.TokenDataResponse]{
+		Status:  true,
+		Message: "Success",
+		Data:    token,
+	}
+
+	helper.WriteJSON(w, http.StatusOK, resp)
+
+}

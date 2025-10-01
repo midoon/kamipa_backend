@@ -141,3 +141,41 @@ func (u *userUsecase) Logout(ctx context.Context, userId string) error {
 
 	return nil
 }
+
+func (u *userUsecase) RefreshToken(ctx context.Context, request model.RefreshTokenRequest) (model.TokenDataResponse, error) {
+
+	if err := u.validate.Struct(request); err != nil {
+		return model.TokenDataResponse{}, helper.NewCustomError(http.StatusBadRequest, "validation error", err)
+	}
+
+	userId, err := u.tokenUtil.ParseToken(ctx, request.RefreshToken)
+	if err != nil {
+		return model.TokenDataResponse{}, err // already formatted in ParseToken
+	}
+
+	redisKey := fmt.Sprintf("refresh_token:%s", userId)
+	count, err := u.redisRepo.ExistData(ctx, redisKey)
+	if err != nil {
+		return model.TokenDataResponse{}, helper.NewCustomError(http.StatusInternalServerError, "redis error: ", err)
+	}
+
+	if count == 0 {
+		return model.TokenDataResponse{}, helper.NewCustomError(http.StatusUnauthorized, "Unauthorized", nil)
+	}
+
+	user, err := u.userRepo.GetById(ctx, userId)
+	if err != nil {
+		return model.TokenDataResponse{}, helper.NewCustomError(http.StatusBadRequest, "failed to get user", err)
+	}
+
+	expAT := time.Now().Add(time.Hour * 24).UnixMilli()
+	access_token, err := u.tokenUtil.CreateToken(ctx, &user, expAT)
+	if err != nil {
+		return model.TokenDataResponse{}, helper.NewCustomError(http.StatusInternalServerError, "failed create access token", err)
+	}
+
+	return model.TokenDataResponse{
+		AccessToken:  access_token,
+		RefreshToken: request.RefreshToken,
+	}, nil
+}

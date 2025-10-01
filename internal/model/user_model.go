@@ -11,6 +11,10 @@ type LoginUserRequest struct {
 	Password    string `json:"password" validate:"required,min=6"`
 }
 
+type RefreshTokenRequest struct {
+	RefreshToken string `json:"refresh_token" validate:"required"`
+}
+
 type TokenDataResponse struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
