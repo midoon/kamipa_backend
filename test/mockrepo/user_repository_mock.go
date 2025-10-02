@@ -38,3 +38,11 @@ func (r *UserRepositoryMock) GetByNisn(ctx context.Context, nisn string) (kamipa
 
 	return user, err
 }
+
+func (r *UserRepositoryMock) GetById(ctx context.Context, id string) (kamipa_entity.User, error) {
+	args := r.Mock.Called(ctx, id)
+
+	user, _ := args.Get(0).(kamipa_entity.User)
+	err, _ := args.Get(1).(error)
+	return user, err
+}

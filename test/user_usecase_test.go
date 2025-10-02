@@ -15,6 +15,7 @@ import (
 	"github.com/midoon/kamipa_backend/test/mockrepo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -284,4 +285,119 @@ func TestUserLogin(t *testing.T) {
 		assert.Contains(t, err.Error(), "redis error")
 		assert.Empty(t, tokenData.AccessToken)
 	})
+}
+
+func TestRefreshToken(t *testing.T) {
+	password := "12345678"
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+
+	tempDeps := setupDeps()
+	tempDeps.userRepo.Mock.On("GetByNisn", mock.Anything, mock.AnythingOfType("string")).
+		Return(kamipa_entity.User{
+			ID:          "id-1",
+			StudentNisn: "1312",
+			Email:       "user1@gmail.com",
+			Password:    string(hashedPassword),
+		}, nil)
+	tempDeps.redisRepo.Mock.On("DeleteData", mock.Anything, mock.AnythingOfType("string")).Return(1, nil)
+	tempDeps.redisRepo.Mock.On("SetDataString", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+		Return(nil)
+
+	tokenData, err := tempDeps.userUsecase.Login(tempDeps.ctx, model.LoginUserRequest{
+		Password:    password,
+		StudentNisn: "1312",
+	})
+	require.NoError(t, err)
+
+	t.Run("success refresh token", func(t *testing.T) {
+		deps := setupDeps()
+		deps.userRepo.Mock.On("GetById", mock.Anything, "id-1").Return(kamipa_entity.User{
+			ID:          "id-1",
+			StudentNisn: "1312",
+			Email:       "user1@gmail.com",
+			Password:    string(hashedPassword),
+		}, nil)
+		deps.redisRepo.Mock.On("ExistData", mock.Anything, mock.AnythingOfType("string")).Return(1, nil)
+
+		request := model.RefreshTokenRequest{RefreshToken: tokenData.RefreshToken}
+		newTokenData, err := deps.userUsecase.RefreshToken(deps.ctx, request)
+
+		assert.NoError(t, err)
+		assert.NotEmpty(t, newTokenData.AccessToken)
+		assert.NotEmpty(t, newTokenData.RefreshToken)
+
+		deps.userRepo.Mock.AssertExpectations(t)
+		deps.redisRepo.Mock.AssertExpectations(t)
+	})
+
+	t.Run("validation error", func(t *testing.T) {
+		deps := setupDeps()
+
+		request := model.RefreshTokenRequest{
+			RefreshToken: "", // invalid, kosong
+		}
+
+		_, err := deps.userUsecase.RefreshToken(deps.ctx, request)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "validation error")
+	})
+
+	t.Run("invalid refresh token", func(t *testing.T) {
+		deps := setupDeps()
+
+		request := model.RefreshTokenRequest{
+			RefreshToken: "token-salah",
+		}
+
+		_, err := deps.userUsecase.RefreshToken(deps.ctx, request)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "Unauthorized")
+	})
+
+	t.Run("redis error", func(t *testing.T) {
+		deps := setupDeps()
+		deps.userRepo.Mock.On("GetById", mock.Anything, "id-1").Return(kamipa_entity.User{
+			ID:          "id-1",
+			StudentNisn: "1312",
+			Email:       "user1@gmail.com",
+			Password:    string(hashedPassword),
+		}, nil)
+		deps.redisRepo.Mock.On("ExistData", mock.Anything, mock.AnythingOfType("string")).Return(1, errors.New("redis down"))
+
+		request := model.RefreshTokenRequest{RefreshToken: tokenData.RefreshToken}
+		_, err := deps.userUsecase.RefreshToken(deps.ctx, request)
+
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "redis error")
+	})
+
+	t.Run("refresh token not found in redis", func(t *testing.T) {
+		deps := setupDeps()
+		deps.userRepo.Mock.On("GetById", mock.Anything, "id-1").Return(kamipa_entity.User{
+			ID:          "id-1",
+			StudentNisn: "1312",
+			Email:       "user1@gmail.com",
+			Password:    string(hashedPassword),
+		}, nil)
+		deps.redisRepo.Mock.On("ExistData", mock.Anything, mock.AnythingOfType("string")).Return(0, nil)
+
+		request := model.RefreshTokenRequest{RefreshToken: tokenData.RefreshToken}
+		_, err := deps.userUsecase.RefreshToken(deps.ctx, request)
+
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "Unauthorized")
+	})
+
+	t.Run("user not found in database", func(t *testing.T) {
+		deps := setupDeps()
+		deps.userRepo.Mock.On("GetById", mock.Anything, "id-1").Return(kamipa_entity.User{}, errors.New("record not found"))
+		deps.redisRepo.Mock.On("ExistData", mock.Anything, mock.AnythingOfType("string")).Return(1, nil)
+
+		request := model.RefreshTokenRequest{RefreshToken: tokenData.RefreshToken}
+		_, err := deps.userUsecase.RefreshToken(deps.ctx, request)
+
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to get user")
+	})
+
 }
