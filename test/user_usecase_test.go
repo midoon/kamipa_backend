@@ -401,3 +401,34 @@ func TestRefreshToken(t *testing.T) {
 	})
 
 }
+
+func TestLogout(t *testing.T) {
+	t.Run("success logout", func(t *testing.T) {
+		deps := setupDeps()
+		deps.redisRepo.Mock.On("DeleteData", mock.Anything, mock.AnythingOfType("string")).Return(1, nil)
+
+		err := deps.userUsecase.Logout(deps.ctx, "id-1")
+		assert.NoError(t, err)
+		deps.redisRepo.Mock.AssertExpectations(t)
+	})
+
+	t.Run("redis error", func(t *testing.T) {
+		deps := setupDeps()
+		deps.redisRepo.Mock.On("DeleteData", mock.Anything, mock.AnythingOfType("string")).Return(0, errors.New("redis down"))
+
+		err := deps.userUsecase.Logout(deps.ctx, "id-1")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "redis error")
+
+	})
+
+	t.Run("no session", func(t *testing.T) {
+		deps := setupDeps()
+		deps.redisRepo.Mock.On("DeleteData", mock.Anything, mock.AnythingOfType("string")).Return(0, nil)
+
+		err := deps.userUsecase.Logout(deps.ctx, "id-1")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "no active session found")
+
+	})
+}
