@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/midoon/kamipa_backend/internal/configs"
+	"github.com/midoon/kamipa_backend/internal/delivery/http/middleware"
 )
 
 func main() {
@@ -27,10 +28,12 @@ func main() {
 		RedisClient: redisClient,
 	})
 
+	handler := middleware.CorsMiddleware(r) // harus diassign di awal, biar kepanggil pertamakali
+
 	addr := fmt.Sprintf("%s:%s", cnf.Server.Host, cnf.Server.Port)
 	server := &http.Server{
 		Addr:    addr,
-		Handler: r,
+		Handler: handler,
 	}
 
 	fmt.Println("Server is running on port", addr)
