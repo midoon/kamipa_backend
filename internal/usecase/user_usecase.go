@@ -50,6 +50,14 @@ func (u *userUsecase) Register(ctx context.Context, request model.RegistrationUs
 	}
 
 	// counte by NISN
+	countStudent, err := u.studentRepo.CountByNisn(ctx, request.StudentNisn)
+	if err != nil {
+		return helper.NewCustomError(http.StatusInternalServerError, "failed to check nisn", err)
+	}
+
+	if countStudent == 0 {
+		return helper.NewCustomError(http.StatusConflict, "student not found", nil)
+	}
 
 	student, err := u.studentRepo.GetByNisn(ctx, request.StudentNisn)
 	if err != nil {
@@ -82,13 +90,18 @@ func (u *userUsecase) Login(ctx context.Context, request model.LoginUserRequest)
 		return model.TokenDataResponse{}, helper.NewCustomError(http.StatusBadRequest, "validation error", err)
 	}
 
+	count, err := u.userRepo.CountByNisn(ctx, request.StudentNisn)
+	if err != nil {
+		return model.TokenDataResponse{}, helper.NewCustomError(http.StatusBadRequest, "failed to check user", err)
+	}
+
+	if count == 0 {
+		return model.TokenDataResponse{}, helper.NewCustomError(http.StatusUnauthorized, "NISN or password wrong", nil)
+	}
+
 	user, err := u.userRepo.GetByNisn(ctx, request.StudentNisn)
 	if err != nil {
 		return model.TokenDataResponse{}, helper.NewCustomError(http.StatusBadRequest, "failed to get user", err)
-	}
-
-	if user == (kamipa_entity.User{}) {
-		return model.TokenDataResponse{}, helper.NewCustomError(http.StatusUnauthorized, "NISN or password wrong", err)
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.Password))

@@ -8,4 +8,5 @@ import (
 
 type StudentRepository interface {
 	GetByNisn(ctx context.Context, nisn string) (simipa_entity.Student, error)
+	CountByNisn(ctx context.Context, nisn string) (int16, error)
 }

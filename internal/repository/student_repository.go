@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"log"
 
 	"github.com/midoon/kamipa_backend/internal/domain"
 	"github.com/midoon/kamipa_backend/internal/entity/simipa_entity"
@@ -26,4 +27,14 @@ func (r *studentRepository) GetByNisn(ctx context.Context, nisn string) (simipa_
 	}
 
 	return student, nil
+}
+
+func (r *studentRepository) CountByNisn(ctx context.Context, nisn string) (int16, error) {
+	var count int64
+	err := r.simipaDB.WithContext(ctx).Model(&simipa_entity.Student{}).Where("nisn = ?", nisn).Count(&count).Error
+	if err != nil {
+		log.Println(err)
+		return 0, err
+	}
+	return int16(count), nil
 }
