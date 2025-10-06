@@ -19,19 +19,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// func setup() (*mockrepo.UserRepositoryMock, *mockrepo.StudentRepositoryMock, *validator.Validate, context.Context, *mockrepo.RedisRepositoryMock, *util.TokenUtil) {
-
-// 	userRepo := &mockrepo.UserRepositoryMock{Mock: mock.Mock{}}
-// 	studentRepo := &mockrepo.StudentRepositoryMock{Mock: mock.Mock{}}
-// 	validate := validator.New()
-// 	ctx := context.Background()
-// 	redisRepo := &mockrepo.RedisRepositoryMock{}
-
-// 	tokenUtil := util.NewTokenUtil("rahasia", redisRepo)
-
-// 	return userRepo, studentRepo, validate, ctx, redisRepo, tokenUtil
-// }
-
 type testDeps struct {
 	userRepo    *mockrepo.UserRepositoryMock
 	studentRepo *mockrepo.StudentRepositoryMock
@@ -67,6 +54,7 @@ func TestUserRegister(t *testing.T) {
 		// mocking ngga boleh di hardcode,, dan parameternya harus sama dengan yang di usecase
 		deps.userRepo.Mock.On("Store", mock.Anything, mock.AnythingOfType("*kamipa_entity.User")).Return(nil)
 		deps.userRepo.Mock.On("CountByEmail", mock.Anything, mock.AnythingOfType("string")).Return(int16(0), nil)
+		deps.studentRepo.Mock.On("CountByNisn", mock.Anything, mock.AnythingOfType("string")).Return(int16(1), nil)
 		deps.studentRepo.Mock.On("GetByNisn", mock.Anything, mock.AnythingOfType("string")).
 			Return(simipa_entity.Student{
 				ID:      1,
@@ -115,11 +103,12 @@ func TestUserRegister(t *testing.T) {
 
 		deps.userRepo.Mock.On("Store", mock.Anything, mock.AnythingOfType("*kamipa_entity.User")).Return(nil)
 		deps.userRepo.Mock.On("CountByEmail", mock.Anything, mock.AnythingOfType("string")).Return(int16(0), nil)
+		deps.studentRepo.Mock.On("CountByNisn", mock.Anything, mock.AnythingOfType("string")).Return(int16(0), nil)
 		deps.studentRepo.Mock.On("GetByNisn", mock.Anything, mock.AnythingOfType("string")).
 			Return(simipa_entity.Student{}, errors.New("record not found"))
 
 		err := deps.userUsecase.Register(deps.ctx, userRegister1)
-		assert.Contains(t, err.Error(), "failed to get student by NISN")
+		assert.Contains(t, err.Error(), "student not found")
 	})
 
 }
@@ -137,6 +126,7 @@ func TestUserLogin(t *testing.T) {
 
 		// hash password
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("12345678"), bcrypt.DefaultCost)
+		deps.userRepo.Mock.On("CountByNisn", mock.Anything, mock.AnythingOfType("string")).Return(int16(1), nil)
 
 		deps.userRepo.Mock.On("GetByNisn", mock.Anything, mock.AnythingOfType("string")).Return(kamipa_entity.User{
 			ID:          "id-1",
@@ -175,6 +165,7 @@ func TestUserLogin(t *testing.T) {
 	t.Run("failed get user (repo error)", func(t *testing.T) {
 		deps := setupDeps()
 		// mock GetByNisn return error
+		deps.userRepo.Mock.On("CountByNisn", mock.Anything, mock.AnythingOfType("string")).Return(int16(1), nil)
 		deps.userRepo.Mock.On("GetByNisn", mock.Anything, mock.AnythingOfType("string")).Return(kamipa_entity.User{}, errors.New("db down"))
 
 		req := model.LoginUserRequest{
@@ -191,6 +182,7 @@ func TestUserLogin(t *testing.T) {
 	t.Run("wrong NISN (user kosong)", func(t *testing.T) {
 		deps := setupDeps()
 		// mock GetByNisn return user kosong tanpa error
+		deps.userRepo.Mock.On("CountByNisn", mock.Anything, mock.AnythingOfType("string")).Return(int16(0), nil)
 		deps.userRepo.Mock.On("GetByNisn", mock.Anything, mock.AnythingOfType("string")).Return(kamipa_entity.User{}, nil)
 
 		req := model.LoginUserRequest{
@@ -210,6 +202,7 @@ func TestUserLogin(t *testing.T) {
 		// hash password beda
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("passwordlain"), bcrypt.DefaultCost)
 
+		deps.userRepo.Mock.On("CountByNisn", mock.Anything, mock.AnythingOfType("string")).Return(int16(1), nil)
 		deps.userRepo.Mock.On("GetByNisn", mock.Anything, mock.AnythingOfType("string")).Return(kamipa_entity.User{
 			ID:          "id-1",
 			StudentNisn: "1312",
@@ -233,6 +226,7 @@ func TestUserLogin(t *testing.T) {
 
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("12345678"), bcrypt.DefaultCost)
 
+		deps.userRepo.Mock.On("CountByNisn", mock.Anything, mock.AnythingOfType("string")).Return(int16(1), nil)
 		deps.userRepo.Mock.On("GetByNisn", mock.Anything, mock.AnythingOfType("string")).Return(kamipa_entity.User{
 			ID:          "id-1",
 			StudentNisn: "1312",
@@ -259,6 +253,7 @@ func TestUserLogin(t *testing.T) {
 
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("12345678"), bcrypt.DefaultCost)
 
+		deps.userRepo.Mock.On("CountByNisn", mock.Anything, mock.AnythingOfType("string")).Return(int16(1), nil)
 		deps.userRepo.Mock.On("GetByNisn", mock.Anything, mock.AnythingOfType("string")).Return(kamipa_entity.User{
 			ID:          "id-1",
 			StudentNisn: "1312",
@@ -292,6 +287,7 @@ func TestRefreshToken(t *testing.T) {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
 	tempDeps := setupDeps()
+	tempDeps.userRepo.Mock.On("CountByNisn", mock.Anything, mock.AnythingOfType("string")).Return(int16(1), nil)
 	tempDeps.userRepo.Mock.On("GetByNisn", mock.Anything, mock.AnythingOfType("string")).
 		Return(kamipa_entity.User{
 			ID:          "id-1",

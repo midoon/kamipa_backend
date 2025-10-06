@@ -22,3 +22,12 @@ func (r *StudentRepositoryMock) GetByNisn(ctx context.Context, nisn string) (sim
 
 	return student, err
 }
+
+func (r *StudentRepositoryMock) CountByNisn(ctx context.Context, nisn string) (int16, error) {
+	args := r.Mock.Called(ctx, nisn)
+
+	count, _ := args.Get(0).(int16)
+	err, _ := args.Get(1).(error)
+
+	return count, err
+}

@@ -46,3 +46,12 @@ func (r *UserRepositoryMock) GetById(ctx context.Context, id string) (kamipa_ent
 	err, _ := args.Get(1).(error)
 	return user, err
 }
+
+func (r *UserRepositoryMock) CountByNisn(ctx context.Context, nisn string) (int16, error) {
+	args := r.Mock.Called(ctx, nisn)
+
+	count, _ := args.Get(0).(int16)
+	err, _ := args.Get(1).(error)
+
+	return count, err
+}
