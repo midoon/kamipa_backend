@@ -18,6 +18,7 @@ func main() {
 	redisClient := configs.GetRedisClient(cnf.Redis.Addr, 0)
 
 	r := mux.NewRouter()
+	httpClinet := http.Client{}
 
 	configs.BootStrap(&configs.BootstrapConfig{
 		KamipaDB:    kamipaDB,
@@ -26,6 +27,7 @@ func main() {
 		Validate:    validate,
 		Cnf:         cnf,
 		RedisClient: redisClient,
+		HttpClient:  &httpClinet,
 	})
 
 	handler := middleware.CorsMiddleware(r) // harus diassign di awal, biar kepanggil pertamakali

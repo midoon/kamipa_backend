@@ -10,9 +10,10 @@ import (
 )
 
 type RouteConfig struct {
-	Router         *mux.Router
-	UserController *controller.UserController
-	TokenUtil      *util.TokenUtil
+	Router              *mux.Router
+	UserController      *controller.UserController
+	DashboardController *controller.DashboardController
+	TokenUtil           *util.TokenUtil
 }
 
 func (rc *RouteConfig) Setup() {
@@ -39,5 +40,7 @@ func (rc *RouteConfig) setupPrivateRoute() {
 	})
 
 	api.HandleFunc("/auth/logout", rc.UserController.Logout).Methods("DELETE")
+	api.HandleFunc("/news", rc.DashboardController.GetNewsPosts).Methods("GET")
+	api.HandleFunc("/achievements", rc.DashboardController.GetAchievementPosts).Methods("GET")
 
 }

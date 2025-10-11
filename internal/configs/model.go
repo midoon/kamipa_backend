@@ -30,3 +30,7 @@ type Redis struct {
 	Addr     string
 	Password string
 }
+
+type Mediamipa struct {
+	BaseUrl string
+}

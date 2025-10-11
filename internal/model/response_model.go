@@ -11,6 +11,12 @@ type DataResponse[T any] struct {
 	Data    T      `json:"data"`
 }
 
+type ArrayResponse[T any] struct {
+	Status  bool   `json:"status"`
+	Message string `json:"message"`
+	Data    []T    `json:"data"`
+}
+
 type PageResponse[T any] struct {
 	Status   bool         `json:"status"`
 	Message  string       `json:"message"`
