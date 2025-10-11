@@ -8,11 +8,12 @@ import (
 )
 
 type ConfigApp struct {
-	Server   Server
-	KamipaDB KamipaDatabase
-	SimipaDB SimipaDatabase
-	JWT      JWT
-	Redis    Redis
+	Server    Server
+	KamipaDB  KamipaDatabase
+	SimipaDB  SimipaDatabase
+	JWT       JWT
+	Redis     Redis
+	Mediamipa Mediamipa
 }
 
 func GetConfig() *ConfigApp {
@@ -50,6 +51,9 @@ func GetConfig() *ConfigApp {
 		Redis: Redis{
 			Addr:     os.Getenv("REDIS_ADDR"),
 			Password: os.Getenv("REDIS_PASSWORD"),
+		},
+		Mediamipa: Mediamipa{
+			BaseUrl: os.Getenv("MEDIAMIPA_BASE_URL"),
 		},
 	}
 }

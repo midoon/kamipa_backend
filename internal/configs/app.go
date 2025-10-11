@@ -1,6 +1,8 @@
 package configs
 
 import (
+	"net/http"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 	"github.com/midoon/kamipa_backend/internal/controller"
@@ -16,6 +18,7 @@ type BootstrapConfig struct {
 	KamipaDB    *gorm.DB
 	SimipaDB    *gorm.DB
 	Router      *mux.Router
+	HttpClient  *http.Client
 	Validate    *validator.Validate
 	Cnf         *ConfigApp
 	RedisClient *redis.Client
@@ -27,21 +30,25 @@ func BootStrap(bs *BootstrapConfig) {
 	redisRepository := repository.NewRedisRepository(bs.RedisClient)
 	userRepository := repository.NewUserRepository(bs.KamipaDB)
 	studentRepository := repository.NewStudentRepository(bs.SimipaDB)
+	dashboardApiRepository := repository.NewDashboardApiRepository(bs.HttpClient, bs.Cnf.Mediamipa.BaseUrl)
 
 	tokenUtil := util.NewTokenUtil(bs.Cnf.JWT.Key, redisRepository)
 
 	// setup usecase
 	userUsecase := usecase.NewUserUsecase(bs.Validate, userRepository, studentRepository, tokenUtil, redisRepository)
+	dashboardUsecase := usecase.NewDashboardUsecase(dashboardApiRepository)
 
 	// setup controller
 	userController := controller.NewUserController(userUsecase)
+	dashboardController := controller.NewDashboardController(dashboardUsecase)
 
 	//setup middleware
 
 	routeConfig := route.RouteConfig{
-		Router:         bs.Router,
-		UserController: userController,
-		TokenUtil:      tokenUtil,
+		Router:              bs.Router,
+		UserController:      userController,
+		TokenUtil:           tokenUtil,
+		DashboardController: dashboardController,
 	}
 
 	routeConfig.Setup()
