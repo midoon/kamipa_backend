@@ -19,17 +19,19 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type testDeps struct {
-	userRepo    *mockrepo.UserRepositoryMock
-	studentRepo *mockrepo.StudentRepositoryMock
-	validate    *validator.Validate
-	ctx         context.Context
-	redisRepo   *mockrepo.RedisRepositoryMock
-	tokenUtil   *util.TokenUtil
-	userUsecase domain.UserUseCase
+type userUCTestDeps struct {
+	userRepo         *mockrepo.UserRepositoryMock
+	studentRepo      *mockrepo.StudentRepositoryMock
+	validate         *validator.Validate
+	ctx              context.Context
+	redisRepo        *mockrepo.RedisRepositoryMock
+	tokenUtil        *util.TokenUtil
+	userUsecase      domain.UserUseCase
+	dashboardRepo    *mockrepo.DashboardRepositoryMock
+	dashboardUsecase domain.DashboardUsecase
 }
 
-func setupDeps() testDeps {
+func setupDeps() userUCTestDeps {
 	userRepo := &mockrepo.UserRepositoryMock{Mock: mock.Mock{}}
 	studentRepo := &mockrepo.StudentRepositoryMock{Mock: mock.Mock{}}
 	validate := validator.New()
@@ -37,7 +39,9 @@ func setupDeps() testDeps {
 	redisRepo := &mockrepo.RedisRepositoryMock{}
 	tokenUtil := util.NewTokenUtil("jwt_key", redisRepo)
 	userUsecase := usecase.NewUserUsecase(validate, userRepo, studentRepo, tokenUtil, redisRepo)
-	return testDeps{userRepo, studentRepo, validate, ctx, redisRepo, tokenUtil, userUsecase}
+	dashboardRepo := &mockrepo.DashboardRepositoryMock{Mock: mock.Mock{}}
+	dashboardUsecase := usecase.NewDashboardUsecase(dashboardRepo)
+	return userUCTestDeps{userRepo, studentRepo, validate, ctx, redisRepo, tokenUtil, userUsecase, dashboardRepo, dashboardUsecase}
 }
 
 func TestUserRegister(t *testing.T) {
