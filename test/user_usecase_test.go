@@ -1,48 +1,17 @@
 package test
 
 import (
-	"context"
 	"errors"
 	"testing"
 
-	"github.com/go-playground/validator/v10"
-	"github.com/midoon/kamipa_backend/internal/domain"
 	kamipa_entity "github.com/midoon/kamipa_backend/internal/entity/kamipa_entitiy"
 	"github.com/midoon/kamipa_backend/internal/entity/simipa_entity"
 	"github.com/midoon/kamipa_backend/internal/model"
-	"github.com/midoon/kamipa_backend/internal/usecase"
-	"github.com/midoon/kamipa_backend/internal/util"
-	"github.com/midoon/kamipa_backend/test/mockrepo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
 )
-
-type userUCTestDeps struct {
-	userRepo         *mockrepo.UserRepositoryMock
-	studentRepo      *mockrepo.StudentRepositoryMock
-	validate         *validator.Validate
-	ctx              context.Context
-	redisRepo        *mockrepo.RedisRepositoryMock
-	tokenUtil        *util.TokenUtil
-	userUsecase      domain.UserUseCase
-	dashboardRepo    *mockrepo.DashboardRepositoryMock
-	dashboardUsecase domain.DashboardUsecase
-}
-
-func setupDeps() userUCTestDeps {
-	userRepo := &mockrepo.UserRepositoryMock{Mock: mock.Mock{}}
-	studentRepo := &mockrepo.StudentRepositoryMock{Mock: mock.Mock{}}
-	validate := validator.New()
-	ctx := context.Background()
-	redisRepo := &mockrepo.RedisRepositoryMock{}
-	tokenUtil := util.NewTokenUtil("jwt_key", redisRepo)
-	userUsecase := usecase.NewUserUsecase(validate, userRepo, studentRepo, tokenUtil, redisRepo)
-	dashboardRepo := &mockrepo.DashboardRepositoryMock{Mock: mock.Mock{}}
-	dashboardUsecase := usecase.NewDashboardUsecase(dashboardRepo)
-	return userUCTestDeps{userRepo, studentRepo, validate, ctx, redisRepo, tokenUtil, userUsecase, dashboardRepo, dashboardUsecase}
-}
 
 func TestUserRegister(t *testing.T) {
 
