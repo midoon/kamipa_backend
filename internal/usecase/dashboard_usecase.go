@@ -1,7 +1,6 @@
 package usecase
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/midoon/kamipa_backend/internal/domain"
@@ -19,11 +18,20 @@ func NewDashboardUsecase(dashboardApiRepository domain.DashboardApiRepository) d
 	}
 }
 
-func (u *dashboardUsecase) GetPosts(ctx context.Context, postType string) ([]model.PostData, error) {
+func (u *dashboardUsecase) GetPosts(postType string) ([]model.PostData, error) {
 	posts, err := u.dashboardApiRepository.FetchPostsWithType(postType)
 	if err != nil {
 		return []model.PostData{}, helper.NewCustomError(http.StatusBadRequest, "Error fetch data posts", err)
 	}
 
 	return posts, nil
+}
+
+func (u *dashboardUsecase) GetPostDetail(postId string) (model.PostData, error) {
+	post, err := u.dashboardApiRepository.FetchDetailPost(postId)
+	if err != nil {
+		return model.PostData{}, helper.NewCustomError(http.StatusBadRequest, "Error fetch detail data post", err)
+	}
+
+	return post, nil
 }
