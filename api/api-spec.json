@@ -257,66 +257,6 @@
         }
       }
     },
-    "/api/news/{id}": {
-      "get": {
-        "security": [{ "JwtAuth": [] }],
-        "tags": ["Dashboard API"],
-        "description": "Melihat detail berita/ pengumuman",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "newsId",
-            "required": true,
-            "schema": { "type": "string" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success get detail news",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "enum": ["success", "error"],
-                      "default": "success"
-                    },
-                    "message": {
-                      "type": "string",
-                      "default": "Get data successfully"
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string",
-                          "example": "id-1"
-                        },
-                        "title": {
-                          "type": "string",
-                          "example": "title-1"
-                        },
-                        "description": {
-                          "type": "string",
-                          "example": "description-1"
-                        },
-                        "date": {
-                          "type": "string",
-                          "example": "17-08-2025"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
 
     "/api/achievements": {
       "get": {
@@ -376,7 +316,7 @@
         }
       }
     },
-    "/api/achievement/{id}": {
+    "/api/posts/{postId}": {
       "get": {
         "security": [{ "JwtAuth": [] }],
         "tags": ["Dashboard API"],
@@ -385,7 +325,7 @@
           {
             "name": "id",
             "in": "path",
-            "description": "achievementId",
+            "description": "achievement or news Id",
             "required": true,
             "schema": { "type": "string" }
           }
