@@ -42,5 +42,6 @@ func (rc *RouteConfig) setupPrivateRoute() {
 	api.HandleFunc("/auth/logout", rc.UserController.Logout).Methods("DELETE")
 	api.HandleFunc("/news", rc.DashboardController.GetNewsPosts).Methods("GET")
 	api.HandleFunc("/achievements", rc.DashboardController.GetAchievementPosts).Methods("GET")
+	api.HandleFunc("/posts/{postId}", rc.DashboardController.GetDetailPost).Methods("GET")
 
 }

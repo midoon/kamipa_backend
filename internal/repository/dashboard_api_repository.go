@@ -49,3 +49,29 @@ func (r *dashboardApiRepository) FetchPostsWithType(postType string) ([]model.Po
 
 	return apiResp.Data, nil
 }
+
+func (r *dashboardApiRepository) FetchDetailPost(postId string) (model.PostData, error) {
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/posts/%s", r.baseUrl, postId), nil)
+	if err != nil {
+		return model.PostData{}, err
+	}
+
+	resp, err := r.client.Do(req)
+	if err != nil {
+		return model.PostData{}, err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return model.PostData{}, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	apiResp := model.DataResponse[model.PostData]{}
+	if err := json.NewDecoder(resp.Body).Decode(&apiResp); err != nil {
+		return model.PostData{}, err
+	}
+
+	return apiResp.Data, nil
+
+}
