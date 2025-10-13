@@ -29,6 +29,7 @@ func (r *dashboardApiRepository) FetchPostsWithType(postType string) ([]model.Po
 
 	q := req.URL.Query()
 	q.Add("type", postType)
+	q.Add("limit", "5")
 	req.URL.RawQuery = q.Encode()
 
 	resp, err := r.client.Do(req)
