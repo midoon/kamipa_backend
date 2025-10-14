@@ -22,7 +22,7 @@ func TestUserRegister(t *testing.T) {
 	}
 
 	t.Run("success register", func(t *testing.T) {
-		deps := setupDeps()
+		deps := SetupDeps()
 
 		// mocking ngga boleh di hardcode,, dan parameternya harus sama dengan yang di usecase
 		deps.userRepo.Mock.On("Store", mock.Anything, mock.AnythingOfType("*kamipa_entity.User")).Return(nil)
@@ -44,7 +44,7 @@ func TestUserRegister(t *testing.T) {
 	})
 
 	t.Run("error validation", func(t *testing.T) {
-		deps := setupDeps()
+		deps := SetupDeps()
 
 		invalidReq := model.RegistrationUserRequest{} // kosong semua -> invalid
 
@@ -54,7 +54,7 @@ func TestUserRegister(t *testing.T) {
 	})
 
 	t.Run("duplicate user", func(t *testing.T) {
-		deps := setupDeps()
+		deps := SetupDeps()
 
 		deps.userRepo.Mock.On("Store", mock.Anything, mock.AnythingOfType("*kamipa_entity.User")).Return(nil)
 		deps.userRepo.Mock.On("CountByEmail", mock.Anything, mock.AnythingOfType("string")).Return(int16(1), nil)
@@ -72,7 +72,7 @@ func TestUserRegister(t *testing.T) {
 	})
 
 	t.Run("wrong student nisn", func(t *testing.T) {
-		deps := setupDeps()
+		deps := SetupDeps()
 
 		deps.userRepo.Mock.On("Store", mock.Anything, mock.AnythingOfType("*kamipa_entity.User")).Return(nil)
 		deps.userRepo.Mock.On("CountByEmail", mock.Anything, mock.AnythingOfType("string")).Return(int16(0), nil)
@@ -95,7 +95,7 @@ func TestUserLogin(t *testing.T) {
 	}
 
 	t.Run("success login", func(t *testing.T) {
-		deps := setupDeps()
+		deps := SetupDeps()
 
 		// hash password
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("12345678"), bcrypt.DefaultCost)
@@ -126,7 +126,7 @@ func TestUserLogin(t *testing.T) {
 	})
 
 	t.Run("validation error", func(t *testing.T) {
-		deps := setupDeps()
+		deps := SetupDeps()
 		// request kosong supaya kena validator
 		invalidReq := model.LoginUserRequest{}
 		tokenData, err := deps.userUsecase.Login(deps.ctx, invalidReq)
@@ -136,7 +136,7 @@ func TestUserLogin(t *testing.T) {
 	})
 
 	t.Run("failed get user (repo error)", func(t *testing.T) {
-		deps := setupDeps()
+		deps := SetupDeps()
 		// mock GetByNisn return error
 		deps.userRepo.Mock.On("CountByNisn", mock.Anything, mock.AnythingOfType("string")).Return(int16(1), nil)
 		deps.userRepo.Mock.On("GetByNisn", mock.Anything, mock.AnythingOfType("string")).Return(kamipa_entity.User{}, errors.New("db down"))
@@ -153,7 +153,7 @@ func TestUserLogin(t *testing.T) {
 	})
 
 	t.Run("wrong NISN (user kosong)", func(t *testing.T) {
-		deps := setupDeps()
+		deps := SetupDeps()
 		// mock GetByNisn return user kosong tanpa error
 		deps.userRepo.Mock.On("CountByNisn", mock.Anything, mock.AnythingOfType("string")).Return(int16(0), nil)
 		deps.userRepo.Mock.On("GetByNisn", mock.Anything, mock.AnythingOfType("string")).Return(kamipa_entity.User{}, nil)
@@ -170,7 +170,7 @@ func TestUserLogin(t *testing.T) {
 	})
 
 	t.Run("wrong password", func(t *testing.T) {
-		deps := setupDeps()
+		deps := SetupDeps()
 
 		// hash password beda
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("passwordlain"), bcrypt.DefaultCost)
@@ -195,7 +195,7 @@ func TestUserLogin(t *testing.T) {
 	})
 
 	t.Run("redis error on delete", func(t *testing.T) {
-		deps := setupDeps()
+		deps := SetupDeps()
 
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("12345678"), bcrypt.DefaultCost)
 
@@ -222,7 +222,7 @@ func TestUserLogin(t *testing.T) {
 	})
 
 	t.Run("redis error on set refresh token", func(t *testing.T) {
-		deps := setupDeps()
+		deps := SetupDeps()
 
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("12345678"), bcrypt.DefaultCost)
 
@@ -259,7 +259,7 @@ func TestRefreshToken(t *testing.T) {
 	password := "12345678"
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
-	tempDeps := setupDeps()
+	tempDeps := SetupDeps()
 	tempDeps.userRepo.Mock.On("CountByNisn", mock.Anything, mock.AnythingOfType("string")).Return(int16(1), nil)
 	tempDeps.userRepo.Mock.On("GetByNisn", mock.Anything, mock.AnythingOfType("string")).
 		Return(kamipa_entity.User{
@@ -279,7 +279,7 @@ func TestRefreshToken(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("success refresh token", func(t *testing.T) {
-		deps := setupDeps()
+		deps := SetupDeps()
 		deps.userRepo.Mock.On("GetById", mock.Anything, "id-1").Return(kamipa_entity.User{
 			ID:          "id-1",
 			StudentNisn: "1312",
@@ -300,7 +300,7 @@ func TestRefreshToken(t *testing.T) {
 	})
 
 	t.Run("validation error", func(t *testing.T) {
-		deps := setupDeps()
+		deps := SetupDeps()
 
 		request := model.RefreshTokenRequest{
 			RefreshToken: "", // invalid, kosong
@@ -312,7 +312,7 @@ func TestRefreshToken(t *testing.T) {
 	})
 
 	t.Run("invalid refresh token", func(t *testing.T) {
-		deps := setupDeps()
+		deps := SetupDeps()
 
 		request := model.RefreshTokenRequest{
 			RefreshToken: "token-salah",
@@ -324,7 +324,7 @@ func TestRefreshToken(t *testing.T) {
 	})
 
 	t.Run("redis error", func(t *testing.T) {
-		deps := setupDeps()
+		deps := SetupDeps()
 		deps.userRepo.Mock.On("GetById", mock.Anything, "id-1").Return(kamipa_entity.User{
 			ID:          "id-1",
 			StudentNisn: "1312",
@@ -341,7 +341,7 @@ func TestRefreshToken(t *testing.T) {
 	})
 
 	t.Run("refresh token not found in redis", func(t *testing.T) {
-		deps := setupDeps()
+		deps := SetupDeps()
 		deps.userRepo.Mock.On("GetById", mock.Anything, "id-1").Return(kamipa_entity.User{
 			ID:          "id-1",
 			StudentNisn: "1312",
@@ -358,7 +358,7 @@ func TestRefreshToken(t *testing.T) {
 	})
 
 	t.Run("user not found in database", func(t *testing.T) {
-		deps := setupDeps()
+		deps := SetupDeps()
 		deps.userRepo.Mock.On("GetById", mock.Anything, "id-1").Return(kamipa_entity.User{}, errors.New("record not found"))
 		deps.redisRepo.Mock.On("ExistData", mock.Anything, mock.AnythingOfType("string")).Return(1, nil)
 
@@ -373,7 +373,7 @@ func TestRefreshToken(t *testing.T) {
 
 func TestLogout(t *testing.T) {
 	t.Run("success logout", func(t *testing.T) {
-		deps := setupDeps()
+		deps := SetupDeps()
 		deps.redisRepo.Mock.On("DeleteData", mock.Anything, mock.AnythingOfType("string")).Return(1, nil)
 
 		err := deps.userUsecase.Logout(deps.ctx, "id-1")
@@ -382,7 +382,7 @@ func TestLogout(t *testing.T) {
 	})
 
 	t.Run("redis error", func(t *testing.T) {
-		deps := setupDeps()
+		deps := SetupDeps()
 		deps.redisRepo.Mock.On("DeleteData", mock.Anything, mock.AnythingOfType("string")).Return(0, errors.New("redis down"))
 
 		err := deps.userUsecase.Logout(deps.ctx, "id-1")
@@ -392,7 +392,7 @@ func TestLogout(t *testing.T) {
 	})
 
 	t.Run("no session", func(t *testing.T) {
-		deps := setupDeps()
+		deps := SetupDeps()
 		deps.redisRepo.Mock.On("DeleteData", mock.Anything, mock.AnythingOfType("string")).Return(0, nil)
 
 		err := deps.userUsecase.Logout(deps.ctx, "id-1")

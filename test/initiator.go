@@ -23,7 +23,7 @@ type testDeps struct {
 	dashboardUsecase domain.DashboardUsecase
 }
 
-func setupDeps() testDeps {
+func SetupDeps() testDeps {
 	userRepo := &mockrepo.UserRepositoryMock{Mock: mock.Mock{}}
 	studentRepo := &mockrepo.StudentRepositoryMock{Mock: mock.Mock{}}
 	validate := validator.New()

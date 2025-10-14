@@ -17,3 +17,12 @@ func (r *DashboardRepositoryMock) FetchPostsWithType(postType string) ([]model.P
 
 	return posts, err
 }
+
+func (r *DashboardRepositoryMock) FetchDetailPost(postId string) (model.PostData, error) {
+	args := r.Mock.Called(postId)
+
+	post, _ := args.Get(0).(model.PostData)
+	err := args.Error(1)
+
+	return post, err
+}
