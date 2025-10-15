@@ -116,7 +116,7 @@ func (u *userUsecase) Login(ctx context.Context, request model.LoginUserRequest)
 	}
 
 	// generate token
-	expAT := time.Now().Add(time.Hour * 24).UnixMilli()
+	expAT := time.Now().Add(time.Hour * 24 * 10).UnixMilli()
 	access_token, err := u.tokenUtil.CreateToken(ctx, &user, expAT)
 	if err != nil {
 		return model.TokenDataResponse{}, helper.NewCustomError(http.StatusInternalServerError, "failed create access token", err)
