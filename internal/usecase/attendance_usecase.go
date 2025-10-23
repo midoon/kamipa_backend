@@ -49,6 +49,7 @@ func (u *attendanceUsecase) GetAttendances(ctx context.Context, userId string) (
 			StudentId: val.StudentId,
 			Date:      val.Date,
 			Status:    val.Status,
+			Activity:  val.Activity.Name,
 		}
 
 		attendancesList = append(attendancesList, attendanceData)
