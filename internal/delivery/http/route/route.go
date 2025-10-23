@@ -10,10 +10,11 @@ import (
 )
 
 type RouteConfig struct {
-	Router              *mux.Router
-	UserController      *controller.UserController
-	DashboardController *controller.DashboardController
-	TokenUtil           *util.TokenUtil
+	Router               *mux.Router
+	UserController       *controller.UserController
+	DashboardController  *controller.DashboardController
+	TokenUtil            *util.TokenUtil
+	AttendanceController *controller.AttendanceController
 }
 
 func (rc *RouteConfig) Setup() {
@@ -43,5 +44,7 @@ func (rc *RouteConfig) setupPrivateRoute() {
 	api.HandleFunc("/news", rc.DashboardController.GetNewsPosts).Methods("GET")
 	api.HandleFunc("/achievements", rc.DashboardController.GetAchievementPosts).Methods("GET")
 	api.HandleFunc("/posts/{postId}", rc.DashboardController.GetDetailPost).Methods("GET")
+
+	api.HandleFunc("/attendances", rc.AttendanceController.GetAttendances).Methods("GET")
 
 }
