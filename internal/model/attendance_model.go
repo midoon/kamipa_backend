@@ -6,4 +6,5 @@ type AttendanceData struct {
 	StudentId int64     `json:"student_id"`
 	Date      time.Time `json:"date"`
 	Status    string    `json:"status"`
+	Activity  string    `json:"activity"`
 }

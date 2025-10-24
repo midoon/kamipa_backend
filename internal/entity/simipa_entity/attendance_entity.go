@@ -11,6 +11,8 @@ type Attendance struct {
 	Status     string    `gorm:"collumn:status"`
 	CreatedAt  time.Time `gorm:"column:created_at;autoCreateTime"`
 	UpdatedAt  time.Time `gorm:"column:updated_at;autoCreateTime;autoUpdateTime"`
+
+	Activity Activity `gorm:"foreignKey:ActivityId;references:ID"`
 }
 
 func (u *Attendance) TableName() string {
