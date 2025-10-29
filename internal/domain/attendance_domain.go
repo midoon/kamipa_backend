@@ -19,4 +19,5 @@ type AttendanceUsecase interface {
 		userId string,
 		page, size int,
 	) ([]model.AttendanceData, model.PageMetadata, error)
+	GetAttendanceSummary(ctx context.Context, userId string) ([]model.AttendanceSummary, error)
 }

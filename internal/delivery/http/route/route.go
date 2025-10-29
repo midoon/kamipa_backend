@@ -47,5 +47,5 @@ func (rc *RouteConfig) setupPrivateRoute() {
 
 	api.HandleFunc("/attendances", rc.AttendanceController.GetAttendances).Methods("GET")
 	api.HandleFunc("/attendances/paginate", rc.AttendanceController.GetAttendancesPaginated).Methods("GET")
-
+	api.HandleFunc("/attendances/summary", rc.AttendanceController.GetAttendanceSummary).Methods("GET")
 }

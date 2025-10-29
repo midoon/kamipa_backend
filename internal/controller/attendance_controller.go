@@ -80,3 +80,25 @@ func getIntQuery(r *http.Request, key string, defaultVal int) int {
 	}
 	return val
 }
+
+func (c *AttendanceController) GetAttendanceSummary(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	userId := r.Context().Value(helper.UserIDKey).(string)
+	attendanceSummaries, err := c.attendanceUsecase.GetAttendanceSummary(ctx, userId)
+	if err != nil {
+		customErr := err.(*helper.CustomError)
+		helper.WriteJSON(w, customErr.Code, model.MessageResponse{
+			Status:  false,
+			Message: customErr.Error(),
+		})
+		return
+	}
+
+	resp := model.ArrayResponse[model.AttendanceSummary]{
+		Status:  true,
+		Message: "Success get attendance summary data",
+		Data:    attendanceSummaries,
+	}
+
+	helper.WriteJSON(w, http.StatusOK, resp)
+}
