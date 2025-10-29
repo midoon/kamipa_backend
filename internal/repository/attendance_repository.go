@@ -21,7 +21,7 @@ func NewAttendanceRepository(simipaDB *gorm.DB) domain.AttendanceRepository {
 func (r *attendanceRepository) GetByStudentId(ctx context.Context, studentId int64) ([]simipa_entity.Attendance, error) {
 	var attendances []simipa_entity.Attendance
 
-	err := r.simipaDB.WithContext(ctx).Preload("Activity").Where("student_id = ?", studentId).Find(&attendances).Error
+	err := r.simipaDB.WithContext(ctx).Preload("Activity").Where("student_id = ?", studentId).Order("date ASC").Find(&attendances).Error
 
 	if err != nil {
 		return []simipa_entity.Attendance{}, err

@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/midoon/kamipa_backend/internal/domain"
 	"github.com/midoon/kamipa_backend/internal/helper"
@@ -102,4 +103,58 @@ func (u *attendanceUsecase) GetAttendancesByStudentIdPaginated(
 	}
 
 	return attendancesList, pageMetadata, nil
+}
+
+func (u *attendanceUsecase) GetAttendanceSummary(ctx context.Context, userId string) ([]model.AttendanceSummary, error) {
+
+	user, err := u.userRepository.GetById(ctx, userId)
+	if err != nil {
+		return []model.AttendanceSummary{}, helper.NewCustomError(http.StatusInternalServerError, "Error get user data", err)
+	}
+
+	student, err := u.studentRepository.GetByNisn(ctx, user.StudentNisn)
+
+	if err != nil {
+		return []model.AttendanceSummary{}, helper.NewCustomError(http.StatusInternalServerError, "Error get student data", err)
+	}
+
+	attendances, err := u.attendanceRepository.GetByStudentId(ctx, student.ID)
+
+	if err != nil {
+		return []model.AttendanceSummary{}, helper.NewCustomError(http.StatusInternalServerError, "Error get attendance data", err)
+	}
+
+	atetndancesSummaryMap := make(map[string]*model.AttendanceSummary)
+	for _, val := range attendances {
+		summary, exists := atetndancesSummaryMap[val.Activity.Name]
+		if !exists {
+			summary = &model.AttendanceSummary{
+				Activity:    val.Activity.Name,
+				StartDate:   val.Date,
+				CurrentDate: time.Now(),
+				Hadir:       0,
+				Izin:        0,
+				Sakit:       0,
+				Alpha:       0,
+			}
+			atetndancesSummaryMap[val.Activity.Name] = summary
+		}
+
+		switch val.Status {
+		case "hadir":
+			summary.Hadir++
+		case "izin":
+			summary.Izin++
+		case "sakit":
+			summary.Sakit++
+		case "alpha":
+			summary.Alpha++
+		}
+	}
+	attendanceSummaries := []model.AttendanceSummary{}
+	for _, summary := range atetndancesSummaryMap {
+		attendanceSummaries = append(attendanceSummaries, *summary)
+	}
+
+	return attendanceSummaries, nil
 }

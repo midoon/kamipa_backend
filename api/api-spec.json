@@ -456,31 +456,38 @@
                       "default": "Get data successfully"
                     },
                     "data": {
-                      "type": "object",
-                      "properties": {
-                        "start_date": {
-                          "type": "string",
-                          "example": "01-01-2025"
-                        },
-                        "current_date": {
-                          "type": "string",
-                          "example": "20-09-2028"
-                        },
-                        "total_hadir": {
-                          "type": "number",
-                          "example": 20
-                        },
-                        "total_izin": {
-                          "type": "number",
-                          "example": 0
-                        },
-                        "total_sakit": {
-                          "type": "number",
-                          "example": 0
-                        },
-                        "total_alpha": {
-                          "type": "number",
-                          "example": 0
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "activity": {
+                            "type": "string",
+                            "example": "Kegiatan Belajar Mengajar"
+                          },
+                          "start_date": {
+                            "type": "string",
+                            "example": "01-01-2025"
+                          },
+                          "current_date": {
+                            "type": "string",
+                            "example": "20-09-2028"
+                          },
+                          "hadir": {
+                            "type": "number",
+                            "example": 20
+                          },
+                          "izin": {
+                            "type": "number",
+                            "example": 0
+                          },
+                          "sakit": {
+                            "type": "number",
+                            "example": 0
+                          },
+                          "alpha": {
+                            "type": "number",
+                            "example": 0
+                          }
                         }
                       }
                     }
