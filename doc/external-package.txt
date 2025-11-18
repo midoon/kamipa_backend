@@ -7,3 +7,4 @@ VALIDATOR: $ go get github.com/go-playground/validator/v10
 TESTIFY: $ go get github.com/stretchr/testify
 JWT: $ go get -u github.com/golang-jwt/jwt/v5
 Redis: $ go get github.com/redis/go-redis/v9
+Midtrans: $ go get -u github.com/midtrans/midtrans-go
