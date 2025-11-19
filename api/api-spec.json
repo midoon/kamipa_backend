@@ -527,7 +527,7 @@
                       "items": {
                         "type": "object",
                         "properties": {
-                          "fee_id": {
+                          "id": {
                             "type": "string",
                             "example": "id-fee-1"
                           },
@@ -585,7 +585,7 @@
                     "data": {
                       "type": "object",
                       "properties": {
-                        "fee_id": {
+                        "id": {
                           "type": "string",
                           "example": "id-fee-1"
                         },
