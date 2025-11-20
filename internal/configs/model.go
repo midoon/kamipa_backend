@@ -34,3 +34,8 @@ type Redis struct {
 type Mediamipa struct {
 	BaseUrl string
 }
+
+type Midtrans struct {
+	Key    string
+	IsProd bool
+}
