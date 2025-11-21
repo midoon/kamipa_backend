@@ -42,7 +42,7 @@ func BootStrap(bs *BootstrapConfig) {
 	dashboardUsecase := usecase.NewDashboardUsecase(dashboardApiRepository)
 	attendanceUsecase := usecase.NewAttendanceUsecase(attendanceRepository, userRepository, studentRepository)
 	feeUsecase := usecase.NewFeeUsecase(feeRepository, userRepository, studentRepository)
-	topupUsecase := usecase.NewTopupUsecase(bs.Cnf.Midtrans.Key, bs.Cnf.Midtrans.IsProd, topupRepository, feeRepository, userRepository)
+	topupUsecase := usecase.NewTopupUsecase(bs.Cnf.Midtrans.Key, bs.Cnf.Midtrans.IsProd, topupRepository, feeRepository, userRepository, studentRepository)
 
 	// setup controller
 	userController := controller.NewUserController(userUsecase)

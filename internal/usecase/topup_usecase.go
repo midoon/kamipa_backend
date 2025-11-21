@@ -17,20 +17,22 @@ import (
 )
 
 type topupUsecase struct {
-	midtransKey      string
-	midtransEnv      bool
-	topupRespository domain.TopupRepository
-	feeRepository    domain.FeeRepository
-	userRepository   domain.UserRepository
+	midtransKey       string
+	midtransEnv       bool
+	topupRespository  domain.TopupRepository
+	feeRepository     domain.FeeRepository
+	userRepository    domain.UserRepository
+	studentRepository domain.StudentRepository
 }
 
-func NewTopupUsecase(midtransKey string, midtransEnv bool, topupRepository domain.TopupRepository, feeRepository domain.FeeRepository, userRepository domain.UserRepository) domain.TopupUsecase {
+func NewTopupUsecase(midtransKey string, midtransEnv bool, topupRepository domain.TopupRepository, feeRepository domain.FeeRepository, userRepository domain.UserRepository, studentRepository domain.StudentRepository) domain.TopupUsecase {
 	return &topupUsecase{
-		midtransKey:      midtransKey,
-		midtransEnv:      midtransEnv,
-		topupRespository: topupRepository,
-		feeRepository:    feeRepository,
-		userRepository:   userRepository,
+		midtransKey:       midtransKey,
+		midtransEnv:       midtransEnv,
+		topupRespository:  topupRepository,
+		feeRepository:     feeRepository,
+		userRepository:    userRepository,
+		studentRepository: studentRepository,
 	}
 }
 
@@ -58,7 +60,19 @@ func (u *topupUsecase) CreatePayment(ctx context.Context, feeId int64, userId st
 	}
 
 	amount := int64(fee.Amount) - int64(fee.PaidAmount)
+	if amount == 0 {
+		return model.TopupData{}, helper.NewCustomError(http.StatusBadRequest, "Fee totally paid", nil)
+	}
+
 	// cek apakah fee itu merupakan fee dari user
+	student, err := u.studentRepository.GetByNisn(ctx, user.StudentNisn)
+	if err != nil {
+		return model.TopupData{}, helper.NewCustomError(http.StatusInternalServerError, "Error get student data", err)
+	}
+
+	if student.ID != fee.StudentId {
+		return model.TopupData{}, helper.NewCustomError(http.StatusBadRequest, "Payment declined, This bill is not yours", err)
+	}
 
 	snapReq := &snap.Request{
 		TransactionDetails: midtrans.TransactionDetails{
