@@ -42,7 +42,8 @@ func (r *topupRepository) UpdateStatus(ctx context.Context, orderId, status stri
 	return r.kamipaDB.WithContext(ctx).Model(&kamipa_entity.Topup{}).Where("order_id = ?", orderId).Updates(u).Error
 }
 
-func (r *topupRepository) SaveLog(ctx context.Context, orderId, event, status string, raw map[string]interface{}) error {
+func (r *topupRepository) SaveLog(ctx context.Context, orderId, event, status string, raw string) error {
+
 	pl := kamipa_entity.TopupLog{
 		OrderID: orderId,
 		Event:   event,

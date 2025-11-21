@@ -8,3 +8,4 @@ TESTIFY: $ go get github.com/stretchr/testify
 JWT: $ go get -u github.com/golang-jwt/jwt/v5
 Redis: $ go get github.com/redis/go-redis/v9
 Midtrans: $ go get -u github.com/midtrans/midtrans-go
+Gorm Custom Datatype: gorm.io/datatypes

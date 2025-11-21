@@ -2,12 +2,12 @@ package usecase
 
 import (
 	"context"
-	"errors"
-	"fmt"
+	"encoding/json"
 	"net/http"
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/midoon/kamipa_backend/internal/domain"
 	kamipa_entity "github.com/midoon/kamipa_backend/internal/entity/kamipa_entitiy"
 	"github.com/midoon/kamipa_backend/internal/helper"
@@ -44,7 +44,8 @@ func (u *topupUsecase) CreatePayment(ctx context.Context, feeId int64, userId st
 		snapClient.New(u.midtransKey, midtrans.Sandbox)
 	}
 
-	orderId := fmt.Sprintf("FEE-%d-USER-%s-%d", feeId, userId, time.Now().Unix())
+	id := uuid.New().String()
+	orderId := "FEE-" + id
 
 	fee, err := u.feeRepository.GetByFeeId(ctx, feeId)
 	if err != nil {
@@ -78,14 +79,10 @@ func (u *topupUsecase) CreatePayment(ctx context.Context, feeId int64, userId st
 		}},
 	}
 
-	resp, midErr := snapClient.CreateTransaction(snapReq)
+	resp, _ := snapClient.CreateTransaction(snapReq)
 
-	if midErr.Message != "" {
-		return model.TopupData{}, helper.NewCustomError(
-			http.StatusInternalServerError,
-			"Error get snap URL",
-			errors.New(midErr.Message),
-		)
+	if resp == nil {
+		return model.TopupData{}, helper.NewCustomError(http.StatusInternalServerError, "Error generate snap url", nil)
 	}
 
 	now := time.Now()
@@ -99,7 +96,7 @@ func (u *topupUsecase) CreatePayment(ctx context.Context, feeId int64, userId st
 		SnapToken:       resp.Token,
 		SnapTokenExpiry: &expiry,
 		Status:          "pending",
-		RawResponse:     map[string]interface{}{},
+		RawResponse:     "",
 		CreatedAt:       now,
 		UpdatedAt:       now,
 	}
@@ -109,8 +106,11 @@ func (u *topupUsecase) CreatePayment(ctx context.Context, feeId int64, userId st
 	}
 
 	// save create log
-	raw := map[string]interface{}{"snap_response": resp}
-	if err := u.topupRespository.SaveLog(ctx, orderId, "create", "pending", raw); err != nil {
+	raw, err := json.Marshal(map[string]interface{}{"snap_response": resp})
+	if err != nil {
+		return model.TopupData{}, helper.NewCustomError(http.StatusInternalServerError, "Error marshal data", err)
+	}
+	if err := u.topupRespository.SaveLog(ctx, orderId, "create", "pending", string(raw)); err != nil {
 		return model.TopupData{}, helper.NewCustomError(http.StatusInternalServerError, "Error store data log topup", err)
 	}
 
@@ -128,7 +128,12 @@ func (u *topupUsecase) MidtransCallback(ctx context.Context, payload map[string]
 	status, _ := payload["transaction_status"].(string)
 
 	// persist raw callback
-	if err := u.topupRespository.SaveLog(ctx, orderId, "callback", status, payload); err != nil {
+	rawBytes, err := json.Marshal(payload)
+	if err != nil {
+		return helper.NewCustomError(http.StatusInternalServerError, "Error marshal data", err)
+	}
+
+	if err := u.topupRespository.SaveLog(ctx, orderId, "callback", status, string(rawBytes)); err != nil {
 		return helper.NewCustomError(http.StatusInternalServerError, "Error store data log topup", err)
 	}
 

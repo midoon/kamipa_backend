@@ -16,6 +16,7 @@ type RouteConfig struct {
 	TokenUtil            *util.TokenUtil
 	AttendanceController *controller.AttendanceController
 	FeeController        *controller.FeeController
+	TopupController      *controller.TopupController
 }
 
 func (rc *RouteConfig) Setup() {
@@ -30,6 +31,8 @@ func (rc *RouteConfig) setupPublicRoute() {
 	rc.Router.HandleFunc("/api/auth/register", rc.UserController.Register).Methods("POST")
 	rc.Router.HandleFunc("/api/auth/login", rc.UserController.Login).Methods("POST")
 	rc.Router.HandleFunc("/api/auth/refresh", rc.UserController.RefreshToken).Methods("POST")
+
+	rc.Router.HandleFunc("/api/midtrans/notification", rc.TopupController.CallbakcHandler).Methods("POST")
 }
 
 // with middleware
@@ -52,4 +55,6 @@ func (rc *RouteConfig) setupPrivateRoute() {
 
 	api.HandleFunc("/fees", rc.FeeController.GetFees).Methods("GET")
 	api.HandleFunc("/fees/{feeId}", rc.FeeController.GetFeeDetail).Methods("GET")
+
+	api.HandleFunc("/topup", rc.TopupController.CreatePayment).Methods("POST")
 }

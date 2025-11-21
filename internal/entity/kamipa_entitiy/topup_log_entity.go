@@ -8,12 +8,12 @@ import (
 )
 
 type TopupLog struct {
-	ID        string                 `gorm:"primaryKey" json:"id"`
-	OrderID   string                 `gorm:"size:100;index" json:"order_id"`
-	Event     string                 `gorm:"size:100" json:"event"`
-	Status    string                 `gorm:"size:50" json:"status"`
-	Raw       map[string]interface{} `gorm:"type:jsonb" json:"raw"`
-	CreatedAt time.Time              `json:"created_at"`
+	ID        string    `gorm:"primaryKey" json:"id"`
+	OrderID   string    `gorm:"size:100;index" json:"order_id"`
+	Event     string    `gorm:"size:100" json:"event"`
+	Status    string    `gorm:"size:50" json:"status"`
+	Raw       string    `gorm:"type:json" json:"raw"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 func (u *TopupLog) TableName() string {

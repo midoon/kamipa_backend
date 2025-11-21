@@ -11,9 +11,12 @@ CREATE TABLE topups (
     payment_code VARCHAR(255),
     transaction_time TIMESTAMP,
     settlement_time TIMESTAMP,
-    raw_response JSON,
+    raw_response TEXT,
     created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    INDEX idx_fee_id (fee_id),
+    INDEX idx_user_id (user_id)
 );
 
 ALTER TABLE `topups` ADD CONSTRAINT `topups_user_id_fkey`

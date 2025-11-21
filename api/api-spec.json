@@ -620,7 +620,7 @@
         }
       }
     },
-    "/api/fees/{feeId}/pay": {
+    "/api/topup": {
       "post": {
         "security": [{ "JwtAuth": [] }],
         "tags": ["Midtrans API"],
@@ -692,7 +692,7 @@
         }
       }
     },
-    "/api/payments/midtrans/notification": {
+    "/api/midtrans/notification": {
       "post": {
         "tags": ["Midtrans API"],
         "description": "Callback notification from Midtrans to update payment status",
