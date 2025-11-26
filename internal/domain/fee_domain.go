@@ -10,6 +10,7 @@ import (
 type FeeRepository interface {
 	GetByStudentId(ctx context.Context, studentId int64) ([]simipa_entity.Fee, error)
 	GetByFeeId(ctx context.Context, feeId int64) (simipa_entity.Fee, error)
+	UpdateAndPay(ctx context.Context, fee *simipa_entity.Fee, payment *simipa_entity.Payment) error
 }
 
 type FeeUsecase interface {

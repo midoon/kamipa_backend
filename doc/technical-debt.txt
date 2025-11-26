@@ -1,6 +1,5 @@
 ######### URGENT ###########
-- change topup migration feeid (to int), userId (to string)
-- add column email and phone number in user table
+- ADD Table error_payment_logs, panggil di callback midtrans
 
 
 

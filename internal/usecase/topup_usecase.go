@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/midoon/kamipa_backend/internal/domain"
 	kamipa_entity "github.com/midoon/kamipa_backend/internal/entity/kamipa_entitiy"
+	"github.com/midoon/kamipa_backend/internal/entity/simipa_entity"
 	"github.com/midoon/kamipa_backend/internal/helper"
 	"github.com/midoon/kamipa_backend/internal/model"
 	"github.com/midtrans/midtrans-go"
@@ -23,9 +25,10 @@ type topupUsecase struct {
 	feeRepository     domain.FeeRepository
 	userRepository    domain.UserRepository
 	studentRepository domain.StudentRepository
+	paymentRepository domain.PaymentRepository
 }
 
-func NewTopupUsecase(midtransKey string, midtransEnv bool, topupRepository domain.TopupRepository, feeRepository domain.FeeRepository, userRepository domain.UserRepository, studentRepository domain.StudentRepository) domain.TopupUsecase {
+func NewTopupUsecase(midtransKey string, midtransEnv bool, topupRepository domain.TopupRepository, feeRepository domain.FeeRepository, userRepository domain.UserRepository, studentRepository domain.StudentRepository, paymentRepository domain.PaymentRepository) domain.TopupUsecase {
 	return &topupUsecase{
 		midtransKey:       midtransKey,
 		midtransEnv:       midtransEnv,
@@ -33,6 +36,7 @@ func NewTopupUsecase(midtransKey string, midtransEnv bool, topupRepository domai
 		feeRepository:     feeRepository,
 		userRepository:    userRepository,
 		studentRepository: studentRepository,
+		paymentRepository: paymentRepository,
 	}
 }
 
@@ -138,6 +142,7 @@ func (u *topupUsecase) CreatePayment(ctx context.Context, feeId int64, userId st
 }
 
 func (u *topupUsecase) MidtransCallback(ctx context.Context, payload map[string]interface{}) error {
+
 	orderId, _ := payload["order_id"].(string)
 	status, _ := payload["transaction_status"].(string)
 
@@ -155,6 +160,40 @@ func (u *topupUsecase) MidtransCallback(ctx context.Context, payload map[string]
 	switch status {
 	case "settlement":
 		t := time.Now()
+		topup, err := u.topupRespository.GetByOrderID(ctx, orderId)
+		if err != nil {
+			fmt.Println("Error", err.Error())
+		}
+		fmt.Println("Topup Data:", topup)
+		fee, err := u.feeRepository.GetByFeeId(ctx, topup.FeeID)
+		if err != nil {
+			fmt.Println("Error", err.Error())
+		}
+
+		fmt.Println("Processing payment for OrderID:", orderId, "FeeID:", fee.ID, "Amount:", topup.Amount)
+
+		payment := simipa_entity.Payment{
+			StudentId:   fee.StudentId,
+			FeeId:       fee.ID,
+			Amount:      float64(topup.Amount),
+			PaymentDate: t,
+			Description: "PAYMENT_METHOD=SELF_PAYMENT",
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+		}
+
+		fee.PaidAmount += float64(topup.Amount)
+		if fee.PaidAmount >= float64(fee.Amount) {
+			fee.Status = "paid"
+		}
+		if err := u.feeRepository.UpdateAndPay(ctx, &fee, &payment); err != nil {
+			return u.paymentRepository.StoreErrorLog(ctx, &kamipa_entity.ErrorPaymentLog{
+				OrderID: orderId,
+				FeeID:   fee.ID,
+				Raw:     err.Error(),
+			})
+		}
+
 		return u.topupRespository.UpdateStatus(ctx, orderId, "paid", &t)
 	case "pending":
 		return u.topupRespository.UpdateStatus(ctx, orderId, "pending", nil)

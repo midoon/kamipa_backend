@@ -34,6 +34,7 @@ func BootStrap(bs *BootstrapConfig) {
 	attendanceRepository := repository.NewAttendanceRepository(bs.SimipaDB)
 	feeRepository := repository.NewFeeRepository(bs.SimipaDB)
 	topupRepository := repository.NewTopupRepository(bs.KamipaDB)
+	paymentRepositoru := repository.NewPaymentRepository(bs.SimipaDB, bs.KamipaDB)
 
 	tokenUtil := util.NewTokenUtil(bs.Cnf.JWT.Key, redisRepository)
 
@@ -42,7 +43,7 @@ func BootStrap(bs *BootstrapConfig) {
 	dashboardUsecase := usecase.NewDashboardUsecase(dashboardApiRepository)
 	attendanceUsecase := usecase.NewAttendanceUsecase(attendanceRepository, userRepository, studentRepository)
 	feeUsecase := usecase.NewFeeUsecase(feeRepository, userRepository, studentRepository)
-	topupUsecase := usecase.NewTopupUsecase(bs.Cnf.Midtrans.Key, bs.Cnf.Midtrans.IsProd, topupRepository, feeRepository, userRepository, studentRepository)
+	topupUsecase := usecase.NewTopupUsecase(bs.Cnf.Midtrans.Key, bs.Cnf.Midtrans.IsProd, topupRepository, feeRepository, userRepository, studentRepository, paymentRepositoru)
 
 	// setup controller
 	userController := controller.NewUserController(userUsecase)

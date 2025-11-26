@@ -23,15 +23,15 @@ func (r *topupRepository) Save(ctx context.Context, t *kamipa_entity.Topup) erro
 	return r.kamipaDB.WithContext(ctx).Create(t).Error
 }
 
-func (r *topupRepository) GetByOrderID(ctx context.Context, orderId string) (*kamipa_entity.Topup, error) {
+func (r *topupRepository) GetByOrderID(ctx context.Context, orderId string) (kamipa_entity.Topup, error) {
 
 	var t kamipa_entity.Topup
 
-	if err := r.kamipaDB.WithContext(ctx).Where("order_id = ?", orderId).First(t).Error; err != nil {
-		return &kamipa_entity.Topup{}, err
+	if err := r.kamipaDB.WithContext(ctx).Where("order_id = ?", orderId).First(&t).Error; err != nil {
+		return kamipa_entity.Topup{}, err
 	}
 
-	return &t, nil
+	return t, nil
 }
 
 func (r *topupRepository) UpdateStatus(ctx context.Context, orderId, status string, settlementTime *time.Time) error {

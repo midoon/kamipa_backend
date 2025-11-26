@@ -10,7 +10,7 @@ import (
 
 type TopupRepository interface {
 	Save(ctx context.Context, t *kamipa_entity.Topup) error
-	GetByOrderID(ctx context.Context, orderID string) (*kamipa_entity.Topup, error)
+	GetByOrderID(ctx context.Context, orderID string) (kamipa_entity.Topup, error)
 	UpdateStatus(ctx context.Context, orderID, status string, settlementTime *time.Time) error
 	SaveLog(ctx context.Context, orderID, event, status string, raw string) error
 }

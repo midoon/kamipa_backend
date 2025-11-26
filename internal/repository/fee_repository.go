@@ -39,3 +39,17 @@ func (r *feeRepository) GetByFeeId(ctx context.Context, feeId int64) (simipa_ent
 	}
 	return fee, nil
 }
+
+func (r *feeRepository) UpdateAndPay(ctx context.Context, fee *simipa_entity.Fee, payment *simipa_entity.Payment) error {
+	tx := r.simipaDB.WithContext(ctx).Begin()
+
+	if err := tx.Model(&simipa_entity.Fee{}).Where("id = ?", fee.ID).Updates(fee).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	if err := tx.Create(payment).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit().Error
+}
