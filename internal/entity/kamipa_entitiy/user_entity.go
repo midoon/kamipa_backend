@@ -11,6 +11,7 @@ type User struct {
 	ID          string    `gorm:"columnn:id;primaryKey"`
 	StudentNisn string    `gorm:"column:student_nisn"`
 	Email       string    `gorm:"column:email"`
+	Phone       string    `gorm:"column:phone"`
 	Password    string    `gorm:"column:password"`
 	CreatedAt   time.Time `gorm:"column:created_at;autoCreateTime"`
 	UpdatedAt   time.Time `gorm:"column:updated_at;autoCreateTime;autoUpdateTime"`

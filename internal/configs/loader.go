@@ -14,6 +14,7 @@ type ConfigApp struct {
 	JWT       JWT
 	Redis     Redis
 	Mediamipa Mediamipa
+	Midtrans  Midtrans
 }
 
 func GetConfig() *ConfigApp {
@@ -54,6 +55,10 @@ func GetConfig() *ConfigApp {
 		},
 		Mediamipa: Mediamipa{
 			BaseUrl: os.Getenv("MEDIAMIPA_BASE_URL"),
+		},
+		Midtrans: Midtrans{
+			Key:    os.Getenv("MIDTRANS_KEY"),
+			IsProd: os.Getenv("MIDTRANS_ENV") == "Production",
 		},
 	}
 }

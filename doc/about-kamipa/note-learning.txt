@@ -1,0 +1,1 @@
+- pada bagian amount harusnya tipe data INT (bestpractice)

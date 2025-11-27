@@ -18,6 +18,7 @@
                 "type": "object",
                 "properties": {
                   "email": { "type": "string", "format": "email" },
+                  "phone": { "type": "string", "example": "081111111111" },
                   "student_nisn": {
                     "type": "string",
                     "description": "Student nisn",
@@ -29,7 +30,7 @@
                     "minLength": 8
                   }
                 },
-                "required": ["email", "student_nisn", "password"]
+                "required": ["email", "student_nisn", "password", "phone"]
               }
             }
           }
@@ -490,6 +491,245 @@
                           }
                         }
                       }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/api/fees": {
+      "get": {
+        "security": [{ "JwtAuth": [] }],
+        "tags": ["Payment API"],
+        "description": "Get summary of attendace student",
+        "responses": {
+          "200": {
+            "description": "Success get summary of attendance student",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success", "error"],
+                      "default": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "default": "Get data successfully"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "example": "id-fee-1"
+                          },
+                          "name": {
+                            "type": "string",
+                            "example": "pembayaran buku"
+                          },
+                          "status": {
+                            "type": "string",
+                            "example": "paid"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/api/fees/{feeId}": {
+      "get": {
+        "security": [{ "JwtAuth": [] }],
+        "tags": ["Payment API"],
+        "description": "Get summary of attendace student",
+        "parameters": [
+          {
+            "name": "feeId",
+            "in": "path",
+            "description": "fee id",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success get summary of attendance student",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success", "error"],
+                      "default": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "default": "Get data successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "example": "id-fee-1"
+                        },
+                        "name": {
+                          "type": "string",
+                          "example": "pembayaran buku"
+                        },
+                        "amount": {
+                          "type": "number",
+                          "example": 500000
+                        },
+                        "remaining_amount": {
+                          "type": "number",
+                          "example": 0
+                        },
+                        "due_date": {
+                          "type": "string",
+                          "example": "31-12-2025"
+                        },
+                        "status": {
+                          "type": "string",
+                          "example": "paid"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/topup": {
+      "post": {
+        "security": [{ "JwtAuth": [] }],
+        "tags": ["Midtrans API"],
+        "description": "Create a Midtrans payment transaction for the selected fee",
+        "parameters": [
+          {
+            "name": "feeId",
+            "in": "path",
+            "description": "Fee ID to be paid",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fee_id": {
+                    "type": "integer",
+                    "example": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success create midtrans transaction",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success", "error"],
+                      "default": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "default": "Payment transaction created successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "order_id": {
+                          "type": "string",
+                          "example": "MID-User-123-id-fee-1"
+                        },
+                        "token": {
+                          "type": "string",
+                          "example": "snap-token-xxx"
+                        },
+                        "redirect_url": {
+                          "type": "string",
+                          "example": "https://app.sandbox.midtrans.com/snap/v3/xxx"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/midtrans/notification": {
+      "post": {
+        "tags": ["Midtrans API"],
+        "description": "Callback notification from Midtrans to update payment status",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "transaction_time": { "type": "string" },
+                  "transaction_status": { "type": "string" },
+                  "transaction_id": { "type": "string" },
+                  "status_message": { "type": "string" },
+                  "status_code": { "type": "string" },
+                  "signature_key": { "type": "string" },
+                  "payment_type": { "type": "string" },
+                  "order_id": { "type": "string" },
+                  "merchant_id": { "type": "string" },
+                  "gross_amount": { "type": "string" },
+                  "fraud_status": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Callback received successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
                     }
                   }
                 }

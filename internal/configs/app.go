@@ -32,6 +32,9 @@ func BootStrap(bs *BootstrapConfig) {
 	studentRepository := repository.NewStudentRepository(bs.SimipaDB)
 	dashboardApiRepository := repository.NewDashboardApiRepository(bs.HttpClient, bs.Cnf.Mediamipa.BaseUrl)
 	attendanceRepository := repository.NewAttendanceRepository(bs.SimipaDB)
+	feeRepository := repository.NewFeeRepository(bs.SimipaDB)
+	topupRepository := repository.NewTopupRepository(bs.KamipaDB)
+	paymentRepositoru := repository.NewPaymentRepository(bs.SimipaDB, bs.KamipaDB)
 
 	tokenUtil := util.NewTokenUtil(bs.Cnf.JWT.Key, redisRepository)
 
@@ -39,11 +42,15 @@ func BootStrap(bs *BootstrapConfig) {
 	userUsecase := usecase.NewUserUsecase(bs.Validate, userRepository, studentRepository, tokenUtil, redisRepository)
 	dashboardUsecase := usecase.NewDashboardUsecase(dashboardApiRepository)
 	attendanceUsecase := usecase.NewAttendanceUsecase(attendanceRepository, userRepository, studentRepository)
+	feeUsecase := usecase.NewFeeUsecase(feeRepository, userRepository, studentRepository)
+	topupUsecase := usecase.NewTopupUsecase(bs.Cnf.Midtrans.Key, bs.Cnf.Midtrans.IsProd, topupRepository, feeRepository, userRepository, studentRepository, paymentRepositoru)
 
 	// setup controller
 	userController := controller.NewUserController(userUsecase)
 	dashboardController := controller.NewDashboardController(dashboardUsecase)
 	attendanceController := controller.NewAttendanceController(attendanceUsecase)
+	feeController := controller.NewFeeController(feeUsecase)
+	topupController := controller.NewTopupController(topupUsecase)
 
 	//setup middleware
 
@@ -53,6 +60,8 @@ func BootStrap(bs *BootstrapConfig) {
 		TokenUtil:            tokenUtil,
 		DashboardController:  dashboardController,
 		AttendanceController: attendanceController,
+		FeeController:        feeController,
+		TopupController:      topupController,
 	}
 
 	routeConfig.Setup()
